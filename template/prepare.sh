@@ -36,5 +36,6 @@ path_template=${path_uqnamd}/template
 for drug in g15; do
     cd $drug/build
     tleap -s -f tleap.in > tleap.log
+    awk -f ${path_template}/$drug/build/constraint.awk complex.pdb ${path_template}/$drug/constraint/prot.pdb > ../constraint/cons.pdb
     cd ../..
 done
