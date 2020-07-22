@@ -1,0 +1,22 @@
+source leaprc.protein.ff14SB
+source leaprc.water.tip3p
+source leaprc.lipid14
+source leaprc.gaff
+frcmod = loadamberparams ../par/lig.frcmod
+
+# Load moleculaes
+lig = loadmol2 ../par/lig.mol2
+prot = loadpdb ../par/protein.pdb
+
+complex = combine{prot lig}
+alignaxes complex
+
+# Counterions & Solvation
+addions complex Cl- 0.0
+addions complex Na+ 0.0
+solvatebox complex TIP3PBOX $box_size
+
+savepdb complex complex.pdb
+saveamberparm complex complex.prmtop complex.crd
+
+quit
