@@ -38,7 +38,7 @@ for drug in g15; do
     for i in {1..25}; do
         cd $drug/fe/mmpbsa/rep$i
 #        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
-        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
+        srun -N 1 -n 48 MMPBSA.py.MPI ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
         sleep 3
         cd ../../../../
     done
