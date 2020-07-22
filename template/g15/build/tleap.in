@@ -1,10 +1,10 @@
 source leaprc.protein.ff14SB
 source leaprc.water.tip3p
 source leaprc.gaff
-frcmod = loadamberparams /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/model/prep/g15/g15.frcmod
-loadamberprep /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/model/prep/g15/g15.prep
+frcmod = loadamberparams /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/template/g15/par/g15.frcmod
+loadamberprep /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/template/g15/par/g15.prep
 
-complex = loadpdb /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/model/pdb/g15.pdb
+complex = loadpdb /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/template/g15/par/g15.pdb
 alignaxes complex
 addions complex Cl- 0.0
 addions complex Na+ 0.0

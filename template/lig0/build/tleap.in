@@ -2,11 +2,11 @@ source leaprc.protein.ff14SB
 source leaprc.water.tip3p
 source leaprc.lipid14
 source leaprc.gaff
-frcmod = loadamberparams ../par/lig.frcmod
+frcmod = loadamberparams /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/template/lig0/par/lig.frcmod
 
 # Load moleculaes
-lig = loadmol2 ../par/lig.mol2
-prot = loadpdb ../par/protein.pdb
+lig = loadmol2 /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/template/lig0/par/lig.mol2
+prot = loadpdb /hppfs/work/pn72qu/di36yax3/tmp/uq_namd/template/lig0/par/protein.pdb
 
 complex = combine{prot lig}
 alignaxes complex
