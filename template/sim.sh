@@ -39,7 +39,7 @@ for step in {0..2}; do
     for drug in `ls -d g15`; do
         cd ${drug}
         if [ -s ./build/complex.prmtop ]; then
-           srun -N 25 -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 25 ${path_template}/${drug}/replica-confs/eq$step-replicas.conf &
+           srun -N 25 -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 25 ${drug}/replica-confs/eq$step-replicas.conf &
            sleep 5
         fi
         cd ..
@@ -51,7 +51,7 @@ done
 for step in {1..1}; do
     for drug in `ls -d g15`; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N 25 -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 25 ${path_template}/${drug}/replica-confs/sim$step-replicas.conf &
+           srun -N 25 -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 25 ${drug}/replica-confs/sim$step-replicas.conf &
            sleep 5
         fi
     done
