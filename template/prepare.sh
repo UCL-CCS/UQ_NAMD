@@ -37,5 +37,7 @@ for drug in g15; do
     cd $drug/build
     tleap -s -f tleap.in > tleap.log
     awk -f ${path_template}/$drug/build/constraint.awk complex.pdb ${path_template}/$drug/constraint/prot.pdb > ../constraint/cons.pdb
-    cd ../..
+    cd ../fe/build
+    ante-MMPBSA.py -p ../../build/complex.prmtop -c com.top -r rec.top -l lig.top -s :129-100000 -n :128
+    cd ../../../
 done
