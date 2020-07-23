@@ -37,7 +37,7 @@ path_template=${path_uqnamd}/template
 
 for step in {0..2}; do
     for drug in `ls -d g15`; do
-        if [ -s ./build/complex.prmtop ]; then
+        if [ -s ${drug}/build/complex.prmtop ]; then
            srun -N 25 -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 25 ${drug}/replica-confs/eq$step-replicas.conf &
            sleep 5
         fi
