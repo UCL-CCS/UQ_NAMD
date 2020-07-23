@@ -65,7 +65,7 @@ directory_tree = {'g15':
                      'fe':
                         {'build': None,
                          'dcd': None,
-                         'mmpbsa': {'rep'+str(i):None for i in range(n_replicas)},
+                         'mmpbsa': {'rep'+str(i):None for i in range(1,n_replicas+1)},
                         },
                      'par': None,
                      'replica-confs': None,
@@ -73,7 +73,7 @@ directory_tree = {'g15':
                         {'rep'+str(i):
                             {'equilibration': None,
                              'simulation': None}
-                             for i in range(n_replicas)
+                             for i in range(1,n_replicas+1)
                             },
                         }
                     }
