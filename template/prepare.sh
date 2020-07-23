@@ -27,7 +27,7 @@ module load amber
 source /lrz/sys/applications/amber/amber18/amber.sh
 
 # Path of the UQ_NAMD project
-path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd
+path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2
 
 # Define path to reference template for files that are not encoded nor copied
 path_template=${path_uqnamd}/template

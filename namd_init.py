@@ -36,7 +36,7 @@ class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
 
 home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["binding_energy"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd/campaigns'
+work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
 n_replicas = 25 # number of replicas per input data point
 
@@ -46,7 +46,7 @@ campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 # Define parameter space for the cannonsim app
 params = {
           "timestep":{"default": 2, "type": "float"},
-          "simulation_time_power":{"default": 7, "type": "float"}, # 10 ns
+          "simulation_time_power":{"default": 3, "type": "float"}, # 10 ns
           "cutoff": {"default": 12, "type": "float"},
           "langevinDamping": {"default": 5, "type": "float"},
           "temperature": {"default": 300, "type": "float"},
@@ -145,9 +145,9 @@ vary = {
         # "pressure": cp.Uniform(0.8, 1.2),
         # "compressibility": cp.Uniform(4e-5, 5.5e-5),
         # "pressure_relaxation_time": cp.Exponential(100,0),
-        "box_size": cp.Uniform(5,20),
-        "equilibration1_time_power":  cp.Uniform(3,5),
-        "equilibration2_time_power": cp.Uniform(4,6),
+        "box_size": cp.Uniform(4,6),
+        "equilibration1_time_power":  cp.Uniform(2,4),
+        "equilibration2_time_power": cp.Uniform(2,4),
 }
 
 #=================================
@@ -182,7 +182,7 @@ sampler.save_state("namd_sampler_state.pickle")
 #fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
 #                    machine="eagle_vecma", PilotJob = False)
 
-cwd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd" #os.getcwd()
+cwd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2" #os.getcwd()
 cmd = "{}/template/prepare.sh".format(cwd)
 campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='bash'))
 cmd = "{}/template/sim.sh".format(cwd)
