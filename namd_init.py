@@ -40,7 +40,7 @@ home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["binding_energy"]
 work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
-n_replicas = 25 # number of replicas per input data point
+n_replicas = 3 # number of replicas per input data point
 
 # Set up a fresh campaign
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)

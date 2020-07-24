@@ -17,9 +17,11 @@
 #SBATCH --account=pn72qu
 ##SBATCH --qos=nolimit
 ##SBATCH --partition=tmp3
-#SBATCH --partition=general
+##SBATCH --partition=general
+#SBATCH --partition=test
 #Number of nodes and MPI tasks per node:
-#SBATCH --nodes=25
+##SBATCH --nodes=25
+#SBATCH --nodes=3
 #SBATCH --ntasks-per-node=48
 
 # Path of the UQ_NAMD project
@@ -35,7 +37,7 @@ source /lrz/sys/applications/amber/amber18/amber.sh
 # MMPB(GB)SA
 #for drug in "${drugs[@]}"; do
 for drug in g15; do
-    for i in {1..25}; do
+    for i in {1..3}; do
         cd $drug/fe/mmpbsa/rep$i
 #        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
         srun -N 1 -n 48 MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
@@ -46,7 +48,7 @@ done
 wait
 
 for drug in g15; do
-    for i in {1..25}; do
+    for i in {1..3}; do
         cd $drug/fe/mmpbsa/rep$i
         srun -n 1 -N 1 xargs -d '\n' -I cmd -P 9 /bin/bash -c 'cmd'  <<EOF &
 cat _MMPBSA_complex_gb.mdout.{0..47} > _MMPBSA_complex_gb.mdout.all
@@ -67,7 +69,7 @@ done
 wait
 
 for drug in g15; do
-    for i in {1..25}; do
+    for i in {1..3}; do
         cd $drug/fe/mmpbsa/rep$i
         rm _MMPBSA_*.{0..47} reference.frc *.pdb *.inpcrd *.mdin* *.out
         cd ../../../../
