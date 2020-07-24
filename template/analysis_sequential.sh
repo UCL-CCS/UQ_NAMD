@@ -40,18 +40,18 @@ source /lrz/sys/applications/amber/amber18/amber.sh
 
 # MMPB(GB)SA
 #for drug in "${drugs[@]}"; do
-    for i in {1..3}; do
-        cd $drug/fe/mmpbsa/rep$i
-#        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
-        srun -N 1 -n 48 MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
-        sleep 3
-        cd ../../../../
-    done
+for i in {1..3}; do
+    cd $drug/fe/mmpbsa/rep$i
+    #srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
+    srun -N 1 -n 48 MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
+    sleep 3
+    cd ../../../../
+done
 wait
 
-    for i in {1..3}; do
-        cd $drug/fe/mmpbsa/rep$i
-        srun -n 1 -N 1 xargs -d '\n' -I cmd -P 9 /bin/bash -c 'cmd'  <<EOF &
+for i in {1..3}; do
+    cd $drug/fe/mmpbsa/rep$i
+    srun -n 1 -N 1 xargs -d '\n' -I cmd -P 9 /bin/bash -c 'cmd'  <<EOF &
 cat _MMPBSA_complex_gb.mdout.{0..47} > _MMPBSA_complex_gb.mdout.all
 cat _MMPBSA_complex_gb_surf.dat.{0..47} > _MMPBSA_complex_gb_surf.dat.all
 cat _MMPBSA_complex_pb.mdout.{0..47} > _MMPBSA_complex_pb.mdout.all
@@ -63,13 +63,21 @@ cat _MMPBSA_receptor_gb_surf.dat.{0..47} > _MMPBSA_receptor_gb_surf.dat.all
 cat _MMPBSA_receptor_pb.mdout.{0..47} > _MMPBSA_receptor_pb.mdout.all
 EOF
 
-        sleep 3
-        cd ../../../../
-    done
+    sleep 3
+    cd ../../../../
+done
 wait
 
-    for i in {1..3}; do
-        cd $drug/fe/mmpbsa/rep$i
-        rm _MMPBSA_*.{0..47} reference.frc *.pdb *.inpcrd *.mdin* *.out
-        cd ../../../../
-    done
+for i in {1..3}; do
+    cd $drug/fe/mmpbsa/rep$i
+    rm _MMPBSA_*.{0..47} reference.frc *.pdb *.inpcrd *.mdin* *.out
+    cd ../../../../
+done
+
+echo "drug,replica,binding_energy_avg,binding_energy_stdev" > output.csv
+for i in {1..3}; do
+    cd $drug/fe/mmpbsa/rep$i
+    tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3 "," $4; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
+    cd ../../../../
+    echo "$drug,$i,$tmp_str" >> output.csv
+done
