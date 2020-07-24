@@ -75,3 +75,13 @@ for drug in g15; do
         cd ../../../../
     done
 done
+
+echo "drug,replica,binding_energy_avg,binding_energy_stdev" > output.csv
+for drug in g15; do
+    for i in {1..3}; do
+        cd $drug/fe/mmpbsa/rep$i
+        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3 "," $4; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
+        cd ../../../../
+        echo "$drug,$i,$tmp_str" >> output.csv
+    done
+done
