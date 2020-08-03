@@ -9,11 +9,34 @@ Execute once.
 import easyvvuq as uq
 import os
 
-from custom import CustomEncoder
+#from custom import CustomEncoder
+class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        simulation_time = 10**params["simulation_time_power"]
+        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
+        # 48 as the number of cores on a node (see anaysis.sh)
+        params["dcd_freq"] = min(int(params["n_steps"]/48), 5000)
+        super().encode(params, target_dir, fixtures)
+
+class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        simulation_time = 10**params["equilibration1_time_power"]
+        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
+        super().encode(params, target_dir, fixtures)
+
+class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        simulation_time = 10**params["equilibration2_time_power"]
+        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
+        super().encode(params, target_dir, fixtures)
+
 
 home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["binding_energy"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd/campaigns'
+output_columns = ["binding_energy_avg"]
+work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
 campaign = uq.Campaign(state_file="namd_easyvvuq_state.json",
                        work_dir=work_dir)
