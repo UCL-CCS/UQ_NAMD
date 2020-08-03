@@ -184,12 +184,7 @@ sampler.save_state("namd_sampler_state.pickle")
 #fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
 #                    machine="eagle_vecma", PilotJob = False)
 
-cwd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2" #os.getcwd()
-cmd = "{}/template/prepare.sh".format(cwd)
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='bash'))
-cmd = "{}/template/sim.sh".format(cwd)
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
-cmd = "{}/template/analysis.sh".format(cwd)
+cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/template/full.sh"
 campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
 
 # Ready to replace the LocalExecution above with execution from PJM, how? Using fabsim? (Maxime)
