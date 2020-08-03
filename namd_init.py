@@ -37,7 +37,7 @@ class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
         super().encode(params, target_dir, fixtures)
 
 home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["binding_energy"]
+output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
 work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
 n_replicas = 25 # number of replicas per input data point
@@ -120,7 +120,7 @@ multiencoder = uq.encoders.MultiEncoder(
 # into a useful file, prefereable csv
 decoder = uq.decoders.SimpleCSV(
     target_filename='output.csv',
-    output_columns=output_columns, header=0, delimiter='\t')
+    output_columns=output_columns, header=0, delimiter=',')
 
 collater = uq.collate.AggregateSamples(average=False)
 
