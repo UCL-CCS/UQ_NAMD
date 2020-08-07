@@ -38,7 +38,7 @@ export PATH_UQNAMD=/hppfs/work/pn72wa/ga89wen3/UQ_NAMD
 export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
 
 # For QCG-PilotJob usage
-ENCODER_MODULES="utils.encoders"
+ENCODER_MODULES="encoders"
 export ENCODER_MODULES
 #export EASYPJ_CONFIG=conf.sh
 
