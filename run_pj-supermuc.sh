@@ -35,7 +35,7 @@ module load namd
 
 # Path of the UQ_NAMD project (the CODE), Campaign in SCRATCH
 export PATH_UQNAMD=/hppfs/work/pn72wa/ga89wen3/UQ_NAMD
-export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/UQ_NAMD/utils
+export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
 
 # For QCG-PilotJob usage
 ENCODER_MODULES="utils.encoders"
