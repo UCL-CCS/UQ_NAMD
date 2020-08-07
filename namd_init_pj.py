@@ -12,7 +12,7 @@ import numpy as np
 import chaospy as cp
 import easyvvuq as uq
 # Specific encoders
-from utils.encoders import SimEncoder, Eq1Encoder, Eq2Encoder
+from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
 # QCG-PJ wrapper
 import easypj
 from easypj import TaskRequirements, Resources
