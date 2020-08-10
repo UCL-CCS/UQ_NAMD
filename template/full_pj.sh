@@ -1,36 +1,4 @@
 #!/bin/bash
-# Job Name and Files (also --job-name)
-#SBATCH -J ADRP+MMPBSA
-#Output and error (also --output, --error):
-#SBATCH -o ./%x.%j.out
-#SBATCH -e ./%x.%j.err
-#Initial working directory (also --chdir):
-#SBATCH -D ./
-#Notification and type
-#SBATCH --mail-type=NONE
-# Wall clock limit:
-#SBATCH --time=00:30:00
-#SBATCH --no-requeue
-#Setup of execution environment
-#SBATCH --export=NONE
-#SBATCH --get-user-env
-#SBATCH --account=pn72qu
-##SBATCH --partition=general
-#SBATCH --partition=micro
-##SBATCH --partition=test
-##SBATCH --qos=nolimit
-#Number of nodes and MPI tasks per node:
-##SBATCH --nodes=25
-#SBATCH --nodes=3
-#SBATCH --ntasks-per-node=48
-
-#constraints are optional
-#--constraint="scratch&work"
-
-module load slurm_setup
-module load amber
-source /lrz/sys/applications/amber/amber18/amber.sh
-module load namd
 
 #n_drugs=2
 #ldrugs="g15 lig0"
@@ -41,17 +9,14 @@ n_replicas=3
 echo "Running equilibration and simulation on " $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) " nodes or " $((1*$SLURM_NTASKS/$n_drugs)) " cores" 
 echo "Running analysis on " $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) " nodes or " $((1*$SLURM_NTASKS/$n_replicas)) " cores" 
 
-# Path of the UQ_NAMD project
-path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2
 
 # Define path to reference template for files that are not encoded nor copied
-path_template=${path_uqnamd}/template
+path_template=${PATH_UQNAMD}/template
 
 # Model Builder
 for drug in $ldrugs; do
     cd $drug/build
     tleap -s -f tleap.in > tleap.log
-    bash ${path_template}/$drug/build/compute_dimensions.sh
     awk -f ${path_template}/$drug/build/constraint.awk complex.pdb ${path_template}/$drug/constraint/prot.pdb > ../constraint/cons.pdb
     cd ../fe/build
     ante-MMPBSA.py -p ../../build/complex.prmtop -c com.top -r rec.top -l lig.top -s :129-100000 -n :128

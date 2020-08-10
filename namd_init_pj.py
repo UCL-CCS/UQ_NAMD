@@ -6,41 +6,26 @@ Execute once.
 ==============================================================================
 """
 
-import easyvvuq as uq
-import chaospy as cp
 import os
 import json
 import numpy as np
+import chaospy as cp
+import easyvvuq as uq
+# Specific encoders
+from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
+# QCG-PJ wrapper
+import easypj
+from easypj import TaskRequirements, Resources
+from easypj import Task, TaskType, SubmitOrder
 
+namd_dir = os.environ['PATH_UQNAMD']
+temp_dir = os.environ['SCRATCH']
+work_dir = temp_dir + '/campaigns'
 
-class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["simulation_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
-        # 48 as the number of cores on a node (see anaysis.sh)
-        params["dcd_freq"] = min(int(params["n_steps"]/48), 5000)
-        super().encode(params, target_dir, fixtures)
-
-class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["equilibration1_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
-        super().encode(params, target_dir, fixtures)
-
-class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["equilibration2_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
-        super().encode(params, target_dir, fixtures)
-
-home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
-n_replicas = 3 # number of replicas per input data point
+# number of replicas per input data point
+n_replicas = 3
 
 # Set up a fresh campaign
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)
@@ -87,32 +72,32 @@ directory_tree = {'g15':
 multiencoder = uq.encoders.MultiEncoder(
     uq.encoders.DirectoryBuilder(tree=directory_tree),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq0.conf',
+        source_filename=namd_dir + '/template/g15/replica-confs/eq0.conf',
         target_filename='g15/replica-confs/eq0.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq0-replicas.conf',
+        source_filename=namd_dir + '/template/g15/replica-confs/eq0-replicas.conf',
         target_filename='g15/replica-confs/eq0-replicas.conf'),
     Eq1Encoder(
-        template_fname=home + '/template/g15/replica-confs/eq1.conf',
+        template_fname=namd_dir + '/template/g15/replica-confs/eq1.conf',
         target_filename='g15/replica-confs/eq1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq1-replicas.conf',
+        source_filename=namd_dir + '/template/g15/replica-confs/eq1-replicas.conf',
         target_filename='g15/replica-confs/eq1-replicas.conf'),
     Eq2Encoder(
-        template_fname=home + '/template/g15/replica-confs/eq2.conf',
+        template_fname=namd_dir + '/template/g15/replica-confs/eq2.conf',
         target_filename='g15/replica-confs/eq2.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq2-replicas.conf',
+        source_filename=namd_dir + '/template/g15/replica-confs/eq2-replicas.conf',
         target_filename='g15/replica-confs/eq2-replicas.conf'),
     SimEncoder(
-        template_fname=home + '/template/g15/replica-confs/sim1.conf',
+        template_fname=namd_dir + '/template/g15/replica-confs/sim1.conf',
         target_filename='g15/replica-confs/sim1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/sim1-replicas.conf',
+        source_filename=namd_dir + '/template/g15/replica-confs/sim1-replicas.conf',
         target_filename='g15/replica-confs/sim1-replicas.conf'),
     uq.encoders.GenericEncoder(
         delimiter='$',
-        template_fname=home + '/template/g15/build/tleap.in',
+        template_fname=namd_dir + '/template/g15/build/tleap.in',
         target_filename='g15/build/tleap.in')
 )
 
@@ -179,15 +164,25 @@ campaign.populate_runs_dir()
 campaign.save_state("namd_easyvvuq_state.json")
 sampler.save_state("namd_sampler_state.pickle")
 
-#run the UQ ensemble
-#import fabsim3_cmd_api as fab
-#fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
-#                    machine="eagle_vecma", PilotJob = False)
+# run the UQ ensemble
 
-cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/template/full.sh"
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+cmd = namd_dir + "/template/full_pj.sh"
+#campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+print("Starting Pilot Job execution ... \n")
+qcgpjexec = easypj.Executor()
+qcgpjexec.create_manager(dir=campaign.campaign_dir, log_level='info')
 
-# Ready to replace the LocalExecution above with execution from PJM, how? Using fabsim? (Maxime)
-#import fabsim3_cmd_api as fab
-#fab.run_uq_ensemble(config??, campaign.campaign_dir, script='??',
-#                    machine="supermuc??_vecma", PilotJob = True)
+qcgpjexec.add_task(Task(
+    TaskType.EXECUTION,
+    TaskRequirements(),
+    application=cmd
+))
+
+qcgpjexec.run(
+    campaign=my_campaign,
+    submit_order=SubmitOrder.EXEC_ONLY
+)
+
+qcgpjexec.terminate_manager()
+
+# Collate, Analysis et get results here? (Jalal)
