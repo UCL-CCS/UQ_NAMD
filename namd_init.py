@@ -8,10 +8,10 @@ Execute once.
 
 import easyvvuq as uq
 import chaospy as cp
-import os
+import os, sys
 import json
 import numpy as np
-
+import math
 
 class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
@@ -36,6 +36,8 @@ class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
         params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
         super().encode(params, target_dir, fixtures)
 
+rseed = int(sys.argv[1])
+
 home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
 work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
@@ -43,12 +45,12 @@ work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 n_replicas = 25 # number of replicas per input data point
 
 # Set up a fresh campaign
-campaign = uq.Campaign(name='namd_', work_dir=work_dir)
+campaign = uq.Campaign(name='namd_'+str(rseed)+'_', work_dir=work_dir)
 
 # Define parameter space for the cannonsim app
 params = {
           "timestep":{"default": 2, "type": "float"},
-          "simulation_time_power":{"default": 3, "type": "float"}, # 10 ns
+          "simulation_time_power":{"default": 7, "type": "float"}, # 10 ns
           "cutoff": {"default": 12, "type": "float"},
           "langevinDamping": {"default": 5, "type": "float"},
           "temperature": {"default": 300, "type": "float"},
@@ -58,6 +60,7 @@ params = {
           "box_size": {"default": 14, "type": "float"},
           "equilibration1_time_power":{"default": 5, "type": "float"}, #100ps
           "equilibration2_time_power":{"default": 6, "type": "float"}, #1ns
+          "rng_seed":{"default": rseed, "type": "float"}, 
           }
 
 # tell the campaign the directory structure required
@@ -147,9 +150,10 @@ vary = {
         # "pressure": cp.Uniform(0.8, 1.2),
         # "compressibility": cp.Uniform(4e-5, 5.5e-5),
         # "pressure_relaxation_time": cp.Exponential(100,0),
-        "box_size": cp.Uniform(4,6),
-        "equilibration1_time_power":  cp.Uniform(2,4),
-        "equilibration2_time_power": cp.Uniform(2,4),
+        "box_size": cp.Uniform(14*(1-0.15),14*(1+0.15)),
+        "equilibration1_time_power":  cp.Uniform(5-math.log(1.15, 10),5+math.log(1.15, 10)),
+        "equilibration2_time_power": cp.Uniform(6-math.log(1.15, 10),6+math.log(1.15, 10)),
+        #"rng_seed": cp.Uniform(12345,12345),
 }
 
 #=================================
@@ -160,11 +164,14 @@ vary = {
 #midpoint_level1 = use a single collocation point in the 1st iteration (not required)
 #dimension_adaptive = use a dimension adaptive sampler (required)
 
-sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
-                                quadrature_rule="C",
-                                sparse=True, growth=True,
-                                midpoint_level1=True,
-                                dimension_adaptive=True)
+#sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
+#                                quadrature_rule="C",
+#                                sparse=True, growth=True,
+#                                midpoint_level1=True,
+#                                dimension_adaptive=True)
+
+sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=2,
+                                quadrature_rule="G")
 
 # # swap to this for a simple test of the substitutions
 # testing_sampler = uq.sampling.BasicSweep(sweep={

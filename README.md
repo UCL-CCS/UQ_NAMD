@@ -3,7 +3,7 @@
 
 Adaptive sampling workflow:
 ```
-python init
+python init $seed_rng
 python analyse
 python look_ahead
 python adapt
