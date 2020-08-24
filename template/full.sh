@@ -62,7 +62,7 @@ done
 for step in {0..2}; do
     for drug in $ldrugs; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 3 ${drug}/replica-confs/eq$step-replicas.conf &
+           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas ${n_replicas} ${drug}/replica-confs/eq$step-replicas.conf &
            sleep 5
         fi
     done
@@ -73,7 +73,7 @@ done
 for step in {1..1}; do
     for drug in $ldrugs; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 3 ${drug}/replica-confs/sim$step-replicas.conf &
+           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas ${n_replicas} ${drug}/replica-confs/sim$step-replicas.conf &
            sleep 5
         fi
     done
