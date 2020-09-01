@@ -33,7 +33,8 @@ class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["equilibration2_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"], -1 ) )
+        params["n_steps_loop"] = int( round( simulation_time / params["timestep"], -1 ) )
+        params["n_steps"] = 15*int( round( simulation_time / params["timestep"], -1 ) )
         super().encode(params, target_dir, fixtures)
 
 rseed = int(sys.argv[1])
@@ -59,7 +60,7 @@ params = {
           "pressure_relaxation_time": {"default": 100, "type": "float"},
           "box_size": {"default": 14, "type": "float"},
           "equilibration1_time_power":{"default": 5, "type": "float"}, #100ps
-          "equilibration2_time_power":{"default": 6, "type": "float"}, #1ns
+          "equilibration2_time_power":{"default": 5, "type": "float"}, #1ns
           "rng_seed":{"default": rseed, "type": "float"}, 
           }
 
@@ -152,7 +153,7 @@ vary = {
         # "pressure_relaxation_time": cp.Exponential(100,0),
         "box_size": cp.Uniform(14*(1-0.15),14*(1+0.15)),
         "equilibration1_time_power":  cp.Uniform(5-math.log(1.15, 10),5+math.log(1.15, 10)),
-        "equilibration2_time_power": cp.Uniform(6-math.log(1.15, 10),6+math.log(1.15, 10)),
+        "equilibration2_time_power": cp.Uniform(5-math.log(1.15, 10),5+math.log(1.15, 10)),
         #"rng_seed": cp.Uniform(12345,12345),
 }
 
