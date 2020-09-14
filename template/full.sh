@@ -85,7 +85,7 @@ done
 for drug in $ldrugs; do
     for i in $(seq 1 $n_replicas); do
         cd $drug/fe/mmpbsa/rep$i
-        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
+        srun -N 1 -n 48 MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
 #        srun -N $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) -n $((1*$SLURM_NTASKS/$n_replicas)) MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
         sleep 3
         cd ../../../../
