@@ -32,6 +32,10 @@ module load amber
 source /lrz/sys/applications/amber/amber18/amber.sh
 module load namd
 
+# Uncomment when using Vytas interactive submission tool
+#echo "Running cd" /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns/namd_bzylliuc/runs/Run_1
+#cd /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns/namd_bzylliuc/runs/Run_1
+
 #n_drugs=2
 #ldrugs="g15 lig0"
 n_drugs=1

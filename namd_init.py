@@ -186,6 +186,8 @@ sampler.save_state("namd_sampler_state.pickle")
 
 cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/template/full.sh"
 campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+# Uncomment when using Vytas interactive submission tool (and comment line above)
+#status = campaign.apply_for_each_run_dir(uq.actions.ExecuteSLURM(cmd, "$run_directory"), batch_size=1)
 
 # Ready to replace the LocalExecution above with execution from PJM, how? Using fabsim? (Maxime)
 #import fabsim3_cmd_api as fab
