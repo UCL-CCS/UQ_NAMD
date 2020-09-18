@@ -43,9 +43,6 @@ def make_template(param_file):
         #line in while segment, write as is
         elif skip:
             fp_template.write(line + '\n')
-        #we alsi skip 'set' statements
-        elif 'set' in line:
-            fp_template.write(line + '\n')
         #actual parameter line
         else:
             #while if there is an inline comment
@@ -56,10 +53,17 @@ def make_template(param_file):
                 comment = ''
             #what remains is: parameter_name  parameter_value
             input_var = tmp[0].split()
-            #parameter_name
-            input_name = input_var[0]
-            #parameter_value
-            default_value = input_var[1]
+            #normal case: input value
+            if not 'set' in input_var:
+                #parameter_name
+                input_name = input_var[0]
+                #parameter_value
+                default_value = input_var[1]
+            #set case: set input value
+            else:
+                input_name = input_var[0] + ' ' + input_var[1]
+                default_value = input_var[2]
+
             #this is the name that goes in params.json, which will be used
             #in the 'vary' dict in EasyVVUQ. Because different input file can share
             #parameter name, the name of the input file is added to the parameter name
@@ -70,6 +74,7 @@ def make_template(param_file):
             if easyvvuq_name[0].isnumeric():
                 easyvvuq_name = '_' + easyvvuq_name
             easyvvuq_name = easyvvuq_name.replace('-', '_')
+            easyvvuq_name = easyvvuq_name.replace(' ', '_')
 
             #determine the type of the input parameter
             try:
@@ -120,6 +125,8 @@ def add_param(name, typ, default):
         params[name]['default'] = default
     elif typ == 'float':
         params[name]['default'] = np.float(default)
+    elif typ == 'integer':
+        params[name]['default'] = np.int(default)
 
     params[name]['type'] = typ
 

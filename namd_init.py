@@ -46,20 +46,6 @@ n_replicas = 3 # number of replicas per input data point
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 
 # Define parameter space
-# params = {
-#           "timestep":{"default": 2, "type": "float"},
-#           "simulation_time_power":{"default": 3, "type": "float"}, # 10 ns
-#           "cutoff": {"default": 12, "type": "float"},
-#           "langevinDamping": {"default": 5, "type": "float"},
-#           "temperature": {"default": 300, "type": "float"},
-#           "pressure": {"default": 1.01325, "type": "float"},
-#           "compressibility": {"default": 4.57e-5, "type": "float"},
-#           "pressure_relaxation_time": {"default": 100, "type": "float"},
-#           "box_size": {"default": 14, "type": "float"},
-#           "equilibration1_time_power":{"default": 5, "type": "float"}, #100ps
-#           "equilibration2_time_power":{"default": 6, "type": "float"}, #1ns
-#           }
-
 params = json.load(open(home + '/template/g15/replica-confs/params.json'))
 #manually add some parameters
 params["simulation_time_power"]  = {"default": 3, "type": "float"} # 10 ns
@@ -91,25 +77,25 @@ directory_tree = {'g15':
 multiencoder = uq.encoders.MultiEncoder(
     uq.encoders.DirectoryBuilder(tree=directory_tree),
     uq.encoders.JinjaEncoder(
-        template_fname=home + '/template/g15/replica-confs/eq0.conf',
+        template_fname=home + '/template/g15/replica-confs/template_eq0.conf',
         target_filename='g15/replica-confs/eq0.conf'),
     uq.encoders.CopyEncoder(
         source_filename=home + '/template/g15/replica-confs/eq0-replicas.conf',
         target_filename='g15/replica-confs/eq0-replicas.conf'),
     Eq1Encoder(
-        template_fname=home + '/template/g15/replica-confs/eq1.conf',
+        template_fname=home + '/template/g15/replica-confs/template_eq1.conf',
         target_filename='g15/replica-confs/eq1.conf'),
     uq.encoders.CopyEncoder(
         source_filename=home + '/template/g15/replica-confs/eq1-replicas.conf',
         target_filename='g15/replica-confs/eq1-replicas.conf'),
     Eq2Encoder(
-        template_fname=home + '/template/g15/replica-confs/eq2.conf',
+        template_fname=home + '/template/g15/replica-confs/template_eq2.conf',
         target_filename='g15/replica-confs/eq2.conf'),
     uq.encoders.CopyEncoder(
         source_filename=home + '/template/g15/replica-confs/eq2-replicas.conf',
         target_filename='g15/replica-confs/eq2-replicas.conf'),
     SimEncoder(
-        template_fname=home + '/template/g15/replica-confs/sim1.conf',
+        template_fname=home + '/template/g15/replica-confs/template_sim1.conf',
         target_filename='g15/replica-confs/sim1.conf'),
     uq.encoders.CopyEncoder(
         source_filename=home + '/template/g15/replica-confs/sim1-replicas.conf',
