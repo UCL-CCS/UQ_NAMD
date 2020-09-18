@@ -17,48 +17,55 @@ class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["simulation_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
+        params["run_sim1"] = int( round( simulation_time / params["timestep_sim1"] ) )
         # 48 as the number of cores on a node (see anaysis.sh)
-        params["dcd_freq"] = min(int(params["n_steps"]/48), 5000)
+        params["dcd_freq_sim1"] = min(int(params["run_sim1"]/48), 5000)
         super().encode(params, target_dir, fixtures)
 
 class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["equilibration1_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
+        params["run_eq1"] = int( round( simulation_time / params["timestep_eq1"] ) )
         super().encode(params, target_dir, fixtures)
 
 class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["equilibration2_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
+        params["run_eq2"] = int( round( simulation_time / params["timestep_eq2"] ) )
         super().encode(params, target_dir, fixtures)
 
 home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
+output_columns = ["binding_energy"]
+work_dir = '/tmp'
 
 n_replicas = 3 # number of replicas per input data point
 
 # Set up a fresh campaign
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 
-# Define parameter space for the cannonsim app
-params = {
-          "timestep":{"default": 2, "type": "float"},
-          "simulation_time_power":{"default": 3, "type": "float"}, # 10 ns
-          "cutoff": {"default": 12, "type": "float"},
-          "langevinDamping": {"default": 5, "type": "float"},
-          "temperature": {"default": 300, "type": "float"},
-          "pressure": {"default": 1.01325, "type": "float"},
-          "compressibility": {"default": 4.57e-5, "type": "float"},
-          "pressure_relaxation_time": {"default": 100, "type": "float"},
-          "box_size": {"default": 14, "type": "float"},
-          "equilibration1_time_power":{"default": 5, "type": "float"}, #100ps
-          "equilibration2_time_power":{"default": 6, "type": "float"}, #1ns
-          }
+# Define parameter space
+# params = {
+#           "timestep":{"default": 2, "type": "float"},
+#           "simulation_time_power":{"default": 3, "type": "float"}, # 10 ns
+#           "cutoff": {"default": 12, "type": "float"},
+#           "langevinDamping": {"default": 5, "type": "float"},
+#           "temperature": {"default": 300, "type": "float"},
+#           "pressure": {"default": 1.01325, "type": "float"},
+#           "compressibility": {"default": 4.57e-5, "type": "float"},
+#           "pressure_relaxation_time": {"default": 100, "type": "float"},
+#           "box_size": {"default": 14, "type": "float"},
+#           "equilibration1_time_power":{"default": 5, "type": "float"}, #100ps
+#           "equilibration2_time_power":{"default": 6, "type": "float"}, #1ns
+#           }
+
+params = json.load(open(home + '/template/g15/replica-confs/params.json'))
+#manually add some parameters
+params["simulation_time_power"]  = {"default": 3, "type": "float"} # 10 ns
+params["equilibration1_time_power"] = {"default": 5, "type": "float"} #100ps
+params["equilibration2_time_power"] = {"default": 6, "type": "float"} #1ns
+params["box_size"] = {"default": 14, "type": "float"}
 
 # tell the campaign the directory structure required
 directory_tree = {'g15':
@@ -81,13 +88,10 @@ directory_tree = {'g15':
                     }
 
 # Build the encoders
-# i've only implemented some md-engine parameters in the sim1.conf file.
-# Every requried input file needs to be listed as an encoder even if no substitutions
-# are to be made, this is a bit of a fudge
 multiencoder = uq.encoders.MultiEncoder(
     uq.encoders.DirectoryBuilder(tree=directory_tree),
-    uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq0.conf',
+    uq.encoders.JinjaEncoder(
+        template_fname=home + '/template/g15/replica-confs/eq0.conf',
         target_filename='g15/replica-confs/eq0.conf'),
     uq.encoders.CopyEncoder(
         source_filename=home + '/template/g15/replica-confs/eq0-replicas.conf',
@@ -116,11 +120,11 @@ multiencoder = uq.encoders.MultiEncoder(
         target_filename='g15/build/tleap.in')
 )
 
-# will have to wriet something in the analysis step which collects replicas output
+# will have to write something in the analysis step which collects replicas output
 # into a useful file, prefereable csv
 decoder = uq.decoders.SimpleCSV(
     target_filename='output.csv',
-    output_columns=output_columns, header=0, delimiter=',')
+    output_columns=output_columns, header=0, delimiter='\t')
 
 collater = uq.collate.AggregateSamples(average=False)
 
@@ -139,32 +143,26 @@ campaign.set_app("uq_for_namd")
 # we could choose +/- 10%
 # or choose ranges that are typically found in the literature
 vary = {
-        # "timestep": cp.Uniform(0.1,2),
-        # "simulation_time_power":  cp.Uniform(5,7),
-        # "cutoff": cp.Uniform(8,15),
-        # "langevinDamping": cp.Uniform(1,10),
-        # "temperature": cp.Uniform(270, 330),
-        # "pressure": cp.Uniform(0.8, 1.2),
-        # "compressibility": cp.Uniform(4e-5, 5.5e-5),
-        # "pressure_relaxation_time": cp.Exponential(100,0),
-        "box_size": cp.Uniform(4,6),
+        "BerendsenPressureTarget_eq2": cp.Uniform(0.8, 1.2),
+        "BerendsenPressureRelaxationTime_eq2": cp.Normal(100,5),
+        "box_size": cp.Uniform(14, 16),
         "equilibration1_time_power":  cp.Uniform(2,4),
         "equilibration2_time_power": cp.Uniform(2,4),
 }
 
+#==================================
+#create (dimension-adaptive) sampler
 #=================================
-#create dimension-adaptive sampler
-#=================================
-#sparse = use a sparse grid (required)
-#growth = use a nested quadrature rule (not required)
-#midpoint_level1 = use a single collocation point in the 1st iteration (not required)
-#dimension_adaptive = use a dimension adaptive sampler (required)
+#sparse = use a sparse grid
+#growth = use a nested quadrature rule
+#midpoint_level1 = use a single collocation point in the 1st iteration
+#dimension_adaptive = use a dimension adaptive sampler
 
 sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
                                 quadrature_rule="C",
-                                sparse=True, growth=True,
-                                midpoint_level1=True,
-                                dimension_adaptive=True)
+                                sparse=False, growth=False,
+                                midpoint_level1=False,
+                                dimension_adaptive=False)
 
 # # swap to this for a simple test of the substitutions
 # testing_sampler = uq.sampling.BasicSweep(sweep={
@@ -180,14 +178,14 @@ campaign.save_state("namd_easyvvuq_state.json")
 sampler.save_state("namd_sampler_state.pickle")
 
 #run the UQ ensemble
-#import fabsim3_cmd_api as fab
-#fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
-#                    machine="eagle_vecma", PilotJob = False)
-
-cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/template/full.sh"
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
-# Uncomment when using Vytas interactive submission tool (and comment line above)
-#status = campaign.apply_for_each_run_dir(uq.actions.ExecuteSLURM(cmd, "$run_directory"), batch_size=1)
+# # cwd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2" #os.getcwd()
+# cwd = os.getcwd()
+# cmd = "{}/template/prepare.sh".format(cwd)
+# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='bash'))
+# cmd = "{}/template/sim.sh".format(cwd)
+# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+# cmd = "{}/template/analysis.sh".format(cwd)
+# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
 
 # Ready to replace the LocalExecution above with execution from PJM, how? Using fabsim? (Maxime)
 #import fabsim3_cmd_api as fab
