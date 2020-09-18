@@ -2,14 +2,15 @@
 =============================================================================
 Create a Jinja templates for the eq0, eq1, eq2 and sim1.conf NAMD input files
 
-Stores all parameters in a single JSON input file (params.json)
+Stores all parameters in a single JSON input file (params.json) and generates
+template_[input_file]
 =============================================================================
 """
 
 def make_template(param_file):
     """
     Make the template for param_file
-    
+
     param_file: string
          the name of the input file
     """
@@ -119,7 +120,7 @@ def add_param(name, typ, default):
         params[name]['default'] = default
     elif typ == 'float':
         params[name]['default'] = np.float(default)
-        
+
     params[name]['type'] = typ
 
 def skip_code_segments(lines):

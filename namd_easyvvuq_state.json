@@ -1,9 +1,9 @@
 {
-    "db_location": "sqlite:////tmp/namd_1h29uimw/campaign.db",
+    "db_location": "sqlite:////tmp/namd_plekj63u/campaign.db",
     "db_type": "sql",
     "active_app": "uq_for_namd",
     "campaign_name": "namd_",
-    "campaign_dir": "namd_1h29uimw",
+    "campaign_dir": "namd_plekj63u",
     "log": [
         {
             "element": {
