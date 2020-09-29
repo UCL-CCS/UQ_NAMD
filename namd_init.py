@@ -8,7 +8,8 @@ Execute once.
 
 import easyvvuq as uq
 import chaospy as cp
-import os
+import os, sys
+import math
 import json
 import numpy as np
 
@@ -17,7 +18,7 @@ class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["simulation_time_power"]
-        params["run_sim1"] = int( round( simulation_time / params["timestep_sim1"] ) )
+        params["run_sim1"] = int( round( simulation_time / params["timestep_sim1"], -1 ) )
         # 48 as the number of cores on a node (see anaysis.sh)
         params["dcd_freq_sim1"] = min(int(params["run_sim1"]/48), 5000)
         super().encode(params, target_dir, fixtures)
@@ -26,19 +27,20 @@ class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["equilibration1_time_power"]
-        params["run_eq1"] = int( round( simulation_time / params["timestep_eq1"] ) )
+        params["run_eq1"] = int( round( simulation_time / params["timestep_eq1"], -1 ) )
         super().encode(params, target_dir, fixtures)
 
 class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 
         simulation_time = 10**params["equilibration2_time_power"]
-        params["run_eq2"] = int( round( simulation_time / params["timestep_eq2"] ) )
+        params["run_eq2"] = int( round( simulation_time / params["timestep_eq2"], -1 ) )
         super().encode(params, target_dir, fixtures)
 
 home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["binding_energy"]
-work_dir = '/tmp'
+output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
+work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns'
+
 
 n_replicas = 3 # number of replicas per input data point
 
@@ -110,7 +112,7 @@ multiencoder = uq.encoders.MultiEncoder(
 # into a useful file, prefereable csv
 decoder = uq.decoders.SimpleCSV(
     target_filename='output.csv',
-    output_columns=output_columns, header=0, delimiter='\t')
+    output_columns=output_columns, header=0, delimiter=',')
 
 collater = uq.collate.AggregateSamples(average=False)
 
@@ -129,8 +131,6 @@ campaign.set_app("uq_for_namd")
 # we could choose +/- 10%
 # or choose ranges that are typically found in the literature
 vary = {
-        "BerendsenPressureTarget_eq2": cp.Uniform(0.8, 1.2),
-        "BerendsenPressureRelaxationTime_eq2": cp.Normal(100,5),
         "box_size": cp.Uniform(14, 16),
         "equilibration1_time_power":  cp.Uniform(2,4),
         "equilibration2_time_power": cp.Uniform(2,4),
@@ -164,14 +164,8 @@ campaign.save_state("namd_easyvvuq_state.json")
 sampler.save_state("namd_sampler_state.pickle")
 
 #run the UQ ensemble
-# # cwd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2" #os.getcwd()
-# cwd = os.getcwd()
-# cmd = "{}/template/prepare.sh".format(cwd)
-# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='bash'))
-# cmd = "{}/template/sim.sh".format(cwd)
-# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
-# cmd = "{}/template/analysis.sh".format(cwd)
-# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/template/full.sh"
+campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
 
 # Ready to replace the LocalExecution above with execution from PJM, how? Using fabsim? (Maxime)
 #import fabsim3_cmd_api as fab

@@ -33,8 +33,8 @@ source /lrz/sys/applications/amber/amber18/amber.sh
 module load namd
 
 # Uncomment when using Vytas interactive submission tool
-#echo "Running cd" /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns/namd_bzylliuc/runs/Run_1
-#cd /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns/namd_bzylliuc/runs/Run_1
+#echo "Running cd" /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns/namd_bzylliuc/runs/Run_1
+#cd /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns/namd_bzylliuc/runs/Run_1
 
 #n_drugs=2
 #ldrugs="g15 lig0"
@@ -46,7 +46,7 @@ echo "Running equilibration and simulation on " $((1*$SLURM_JOB_NUM_NODES/$n_dru
 echo "Running analysis on " $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) " nodes or " $((1*$SLURM_NTASKS/$n_replicas)) " cores" 
 
 # Path of the UQ_NAMD project
-path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2
+path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter
 
 # Define path to reference template for files that are not encoded nor copied
 path_template=${path_uqnamd}/template
@@ -66,7 +66,7 @@ done
 for step in {0..2}; do
     for drug in $ldrugs; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 3 ${drug}/replica-confs/eq$step-replicas.conf &
+           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas ${n_replicas} ${drug}/replica-confs/eq$step-replicas.conf &
            sleep 5
         fi
     done
@@ -77,7 +77,7 @@ done
 for step in {1..1}; do
     for drug in $ldrugs; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 3 ${drug}/replica-confs/sim$step-replicas.conf &
+           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas ${n_replicas} ${drug}/replica-confs/sim$step-replicas.conf &
            sleep 5
         fi
     done
@@ -89,9 +89,8 @@ done
 for drug in $ldrugs; do
     for i in $(seq 1 $n_replicas); do
         cd $drug/fe/mmpbsa/rep$i
-#        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
-        srun -N $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) -n $((1*$SLURM_NTASKS/$n_replicas)) MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
-        sleep 3
+        srun -N 1 -n 48 MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd &
+	sleep 3
         cd ../../../../
     done
 done

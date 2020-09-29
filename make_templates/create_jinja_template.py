@@ -96,7 +96,7 @@ def make_template(param_file):
             #Jinja formatting {{ parameter name }}
             easyvvuq_value = '{{ ' + easyvvuq_name + ' }}'
             #write the template file
-            fp_template.write('%s\t\t\t%s\t\t#%s\n' % (input_name, easyvvuq_value, comment))
+            fp_template.write('%s\t\t\t%s\t\t; #%s\n' % (input_name, easyvvuq_value, comment))
         idx += 1
 
     fp.close()
