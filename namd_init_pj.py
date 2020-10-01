@@ -170,7 +170,7 @@ cmd = namd_dir + "/template/full_pj.sh"
 #campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
 print("Starting Pilot Job execution ... \n")
 qcgpjexec = easypj.Executor()
-qcgpjexec.create_manager(dir=campaign.campaign_dir, log_level='info')
+qcgpjexec.create_manager(dir=campaign.campaign_dir, log_level='debug')
 
 qcgpjexec.add_task(Task(
     TaskType.EXECUTION,
