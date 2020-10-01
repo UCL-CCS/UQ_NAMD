@@ -1,16 +1,40 @@
 `python namd_init.py` working on 9.6.2020 with:
 - EasyVVUQ (branch: speed_up_SC_analysis, Chaospy v3.2.12)
 
+Activate proper environment featuring Python and EasyVVUQ, e.g:
+```
+source /path/to/python/env/uq/bin/activate
+```
+
+Template generation:
+```
+cd make_templates
+python create_jinja_template.py eq0.conf eq1.conf eq2.conf sim1.conf
+cp params.json template_eq0.conf template_eq1.conf template_eq2.conf template_sim1.conf ../template/g15/replica-confs/
+cd ..
+```
+
+Set the parameters variability in `namd_init.py``, in the `vary` dictionary, such as:
+```
+vary = {
+        "langevinTemp": cp.Gaussian(300.,100.), # not sure about normal distirbution of float parameter
+        "rigidBonds": cp.categorical(["none", "water", "all"]), # not sure how to draw categorical string parameters
+        "box_size": cp.Uniform(14, 16),
+        "equilibration1_time_power":  cp.Uniform(2,4),
+        "equilibration2_time_power": cp.Uniform(2,4),
+}
+```
+
 Adaptive sampling workflow:
 ```
-python init
-python analyse
-python look_ahead
-python adapt
-python look_ahead
-python adapt
-python look_ahead
-python adapt
+python namd_init.py
+python namd_analyse.py
+python namd_look_ahead.py
+python namd_adapt.py
+python namd_look_ahead.py
+python namd_adapt.py
+python namd_look_ahead.py
+python namd_adapt.py
 ....
 ```
 

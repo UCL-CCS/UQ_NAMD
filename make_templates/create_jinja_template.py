@@ -82,12 +82,12 @@ def make_template(param_file):
                 test_type = type(test)
                 #integer 
                 if test_type is int:
-                    # type_ = 'integer'
-                    type_ = 'float'     #write integers as float as well
+                    type_ = 'integer'
+                    #type_ = 'float'     #write integers as float as well
                 elif test_type is float:
                     type_ = 'float'
                 else:
-                    type_ = 'string'
+                    type_ = 'string'  
             except:
                 type_ = 'string'
 
