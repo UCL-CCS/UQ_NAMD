@@ -37,10 +37,8 @@ module load namd
 export PATH_UQNAMD=/hppfs/work/pn72wa/ga89wen3/UQ_NAMD
 export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
 
-# For QCG-PilotJob usage
-ENCODER_MODULES="encoders"
-export ENCODER_MODULES
-#export EASYPJ_CONFIG=conf.sh
+# For EQI
+export EASYPJ_CONFIG=conf.sh
 
 # Run the UQ code
 python3 namd_init_pj.py > namd_init_pj.${SLURM_JOBID}.log
