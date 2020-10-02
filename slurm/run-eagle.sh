@@ -37,7 +37,7 @@ export EASYPJ_CONFIG=conf.sh
 
 module load slurm_setup
 module load amber
-source /lrz/sys/applications/amber/amber18/amber.sh
+source /opt/exp_soft/local/generic/amber/18-impi-cuda/amber.sh
 module load namd
 
 # Run the UQ code
