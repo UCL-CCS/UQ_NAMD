@@ -38,7 +38,7 @@ class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
 plt.close('all')
 home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["binding_energy_avg","binding_energy_stdev"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_modelbuild/campaigns'
+work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
 #reload Campaign, sampler, analysis
 campaign = uq.Campaign(state_file="namd_easyvvuq_state.json", work_dir=work_dir)
