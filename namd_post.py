@@ -7,15 +7,38 @@ Analyse results after all sampling has completed
        
 import easyvvuq as uq
 import os
-import fabsim3_cmd_api as fab
 import matplotlib.pyplot as plt
 import numpy as np
-from custom import CustomEncoder
+
+#from custom import CustomEncoder
+class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        simulation_time = 10**params["simulation_time_power"]
+        params["n_steps"] = int( round( simulation_time / params["timestep"], -1 ) )
+        # 48 as the number of cores on a node (see anaysis.sh)
+        params["dcd_freq"] = min(int(params["n_steps"]/48), 5000)
+        super().encode(params, target_dir, fixtures)
+
+class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        simulation_time = 10**params["equilibration1_time_power"]
+        params["n_steps"] = int( round( simulation_time / params["timestep"], -1 ) )
+        super().encode(params, target_dir, fixtures)
+
+class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        simulation_time = 10**params["equilibration2_time_power"]
+        params["n_steps_loop"] = int( round( simulation_time / params["timestep"], -1 ) )
+        params["n_steps"] = 15*int( round( simulation_time / params["timestep"], -1 ) )
+        super().encode(params, target_dir, fixtures)
 
 plt.close('all')
 home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["binding_energy"]
-work_dir = '/Users/robertsinclair/postdoc1/uq_namd/campaigns'
+output_columns = ["binding_energy_avg","binding_energy_stdev"]
+work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_modelbuild/campaigns'
 
 #reload Campaign, sampler, analysis
 campaign = uq.Campaign(state_file="namd_easyvvuq_state.json", work_dir=work_dir)
