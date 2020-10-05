@@ -40,7 +40,7 @@ class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
 rseed = int(sys.argv[1])
 
 home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
+output_columns = ["drug","binding_energy_avg"]
 work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
 
 n_replicas = 25 # number of replicas per input data point

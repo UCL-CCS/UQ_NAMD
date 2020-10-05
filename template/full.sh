@@ -121,12 +121,16 @@ for drug in $ldrugs; do
     done
 done
 
-echo "drug,replica,binding_energy_avg,binding_energy_stdev" > output.csv
+echo "drug,binding_energy_avg" > output.csv
 for drug in $ldrugs; do
+    rm tmp.output.csv
     for i in $(seq 1 $n_replicas); do
         cd $drug/fe/mmpbsa/rep$i
-        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3 "," $4; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
+        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
         cd ../../../../
-        echo "$drug,$i,$tmp_str" >> output.csv
+        echo "$tmp_str" >> tmp.output.csv
     done
+    tmp_str=$(awk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' tmp.output.csv)
+    echo "$drug,$tmp_str" >> output.csv
 done
+
