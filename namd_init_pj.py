@@ -179,7 +179,7 @@ qcgpjexec.add_task(Task(
 ))
 
 qcgpjexec.run(
-    campaign=my_campaign,
+    campaign=campaign,
     submit_order=SubmitOrder.EXEC_ONLY
 )
 
