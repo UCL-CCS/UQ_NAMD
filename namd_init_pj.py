@@ -172,9 +172,11 @@ print("Starting Pilot Job execution ... \n")
 qcgpjexec = easypj.Executor()
 qcgpjexec.create_manager(dir=campaign.campaign_dir, log_level='debug')
 
+# TODO TaskRequirements, modify Resources in TaskRequirements if a different number of nodes is used
+# TODO add issue in EQI
 qcgpjexec.add_task(Task(
     TaskType.EXECUTION,
-    TaskRequirements(),
+    TaskRequirements(nodes=Resources(exact=1)),
     application=cmd
 ))
 
