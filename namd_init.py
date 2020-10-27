@@ -26,7 +26,7 @@ campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 # Define parameter space
 params = json.load(open(path_uqnamd + '/template/g15/replica-confs/params.json'))
 #manually add some parameters
-params["box_size"] = {"default": 14.0, "type": "float"}
+#params["example_param"] = {"default": 14.0, "type": "float"}
 
 # tell the campaign the directory structure required
 directory_tree = {'g15':
@@ -130,5 +130,5 @@ sampler.save_state("namd_sampler_state.pickle")
 
 #run the UQ ensemble
 cmd = path_uqnamd + "/template/full.sh"
-#campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
 
