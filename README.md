@@ -6,6 +6,13 @@ Activate proper environment featuring Python and EasyVVUQ, e.g:
 source /path/to/python/env/uq/bin/activate
 ```
 
+Modifying hard set paths:
+```
+orig_path=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter
+new_path=/path/to/this/directory
+find . -name '*' -exec sed -i -e "s;$orig_path;$new_path;g" {} \;
+```
+
 Template generation:
 ```
 cd make_templates

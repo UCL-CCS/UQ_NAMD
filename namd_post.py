@@ -10,7 +10,6 @@ import os
 import fabsim3_cmd_api as fab
 import matplotlib.pyplot as plt
 import numpy as np
-from custom import CustomEncoder
 
 plt.close('all')
 home = os.path.abspath(os.path.dirname(__file__))
