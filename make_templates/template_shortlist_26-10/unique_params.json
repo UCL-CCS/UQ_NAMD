@@ -43,6 +43,10 @@
     "default": 1000,
     "type": "integer"
   },
+  "rng_seed_eq1": {
+    "default": 12345,
+    "type": "integer"
+  },
   "initTemperature_eq1": {
     "default": 50.0,
     "type": "float"

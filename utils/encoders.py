@@ -10,6 +10,13 @@ class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
         params["dcd_freq_sim1"] = min(int(params["run_sim1"]/48), 5000)
         super().encode(params, target_dir, fixtures)
 
+class Eq0Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq0Encoder'):
+    def encode(self, params={}, target_dir='', fixtures=None):
+
+        params["pairlistdist"] = params["cutoff"] + 1.5
+        params["switchdist"] = params["cutoff"] - 2.0
+        super().encode(params, target_dir, fixtures)
+
 class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
     def encode(self, params={}, target_dir='', fixtures=None):
 

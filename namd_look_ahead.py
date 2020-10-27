@@ -15,9 +15,9 @@ import easyvvuq as uq
 import os
 from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
 
-home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["drug","binding_energy_avg"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns'
+path_uqnamd = os.environ['PATH_UQNAMD']
+work_dir = path_uqnamd+ "/campaigns"
 
 #reload Campaign, sampler, analysis
 campaign = uq.Campaign(state_file="namd_easyvvuq_state.json",
@@ -51,5 +51,5 @@ sampler.save_state("namd_sampler_state.pickle")
 #fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
 #                    machine="eagle_vecma", skip=skip, PilotJob=False)
 
-cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/template/full.sh"
+cmd = path_uqnamd + "/template/full.sh"
 campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))

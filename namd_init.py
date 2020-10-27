@@ -12,12 +12,11 @@ import os, sys
 import math
 import json
 import numpy as np
-from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
+from encoders import SimEncoder, Eq0Encoder, Eq1Encoder, Eq2Encoder
 
-home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["drug","binding_energy_avg"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns'
-
+path_uqnamd = os.environ['PATH_UQNAMD']
+work_dir = path_uqnamd+ "/campaigns"
 
 n_replicas = 3 # number of replicas per input data point
 
@@ -25,7 +24,7 @@ n_replicas = 3 # number of replicas per input data point
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 
 # Define parameter space
-params = json.load(open(home + '/template/g15/replica-confs/params.json'))
+params = json.load(open(path_uqnamd + '/template/g15/replica-confs/params.json'))
 #manually add some parameters
 params["box_size"] = {"default": 14.0, "type": "float"}
 
@@ -52,33 +51,33 @@ directory_tree = {'g15':
 # Build the encoders
 multiencoder = uq.encoders.MultiEncoder(
     uq.encoders.DirectoryBuilder(tree=directory_tree),
-    uq.encoders.JinjaEncoder(
-        template_fname=home + '/template/g15/replica-confs/template_eq0.conf',
-        target_filename='g15/replica-confs/eq0.conf'),
+    Eq0Encoder(
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq0.conf',
+        target_filename='g15/replica-confs/eq0.conf'),    
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq0-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq0-replicas.conf',
         target_filename='g15/replica-confs/eq0-replicas.conf'),
     Eq1Encoder(
-        template_fname=home + '/template/g15/replica-confs/template_eq1.conf',
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq1.conf',
         target_filename='g15/replica-confs/eq1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq1-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq1-replicas.conf',
         target_filename='g15/replica-confs/eq1-replicas.conf'),
     Eq2Encoder(
-        template_fname=home + '/template/g15/replica-confs/template_eq2.conf',
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq2.conf',
         target_filename='g15/replica-confs/eq2.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq2-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq2-replicas.conf',
         target_filename='g15/replica-confs/eq2-replicas.conf'),
     SimEncoder(
-        template_fname=home + '/template/g15/replica-confs/template_sim1.conf',
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_sim1.conf',
         target_filename='g15/replica-confs/sim1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/sim1-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/sim1-replicas.conf',
         target_filename='g15/replica-confs/sim1-replicas.conf'),
     uq.encoders.GenericEncoder(
         delimiter='$',
-        template_fname=home + '/template/g15/build/tleap.in',
+        template_fname= path_uqnamd + '/template/g15/build/tleap.in',
         target_filename='g15/build/tleap.in')
 )
 
@@ -102,20 +101,24 @@ campaign.set_app("uq_for_namd")
 
 #parameters to vary
 # for a lot of the parameters its hard to define a useful range to sample
-# we could choose +/- 10%
+# we could choose +/- 15%
 # or choose ranges that are typically found in the literature
 vary = {
+   "cutoff": cp.Uniform(8,15),
 }
 
 #==================================
 #create (dimension-adaptive) sampler
 #=================================
 
-sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
-                                quadrature_rule="C",
-                                sparse=False, growth=False,
-                                midpoint_level1=False,
-                                dimension_adaptive=False)
+sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=2,
+                                quadrature_rule="G")
+
+#sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
+#                                quadrature_rule="C",
+#                                sparse=False, growth=False,
+#                                midpoint_level1=False,
+#                                dimension_adaptive=False)
 
 campaign.set_sampler(sampler)
 # campaign.set_sampler(testing_sampler)
@@ -126,6 +129,6 @@ campaign.save_state("namd_easyvvuq_state.json")
 sampler.save_state("namd_sampler_state.pickle")
 
 #run the UQ ensemble
-cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/template/full.sh"
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+cmd = path_uqnamd + "/template/full.sh"
+#campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
 

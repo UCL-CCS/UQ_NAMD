@@ -6,6 +6,12 @@ Activate proper environment featuring Python and EasyVVUQ, e.g:
 source /path/to/python/env/uq/bin/activate
 ```
 
+Set environment paths:
+```
+export PATH_UQNAMD=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter
+export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
+```
+
 Modifying hard set paths:
 ```
 orig_path=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter

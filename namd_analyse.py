@@ -10,9 +10,9 @@ import easyvvuq as uq
 import os
 from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
 
-home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["binding_energy_avg"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns'
+path_uqnamd = os.environ['PATH_UQNAMD']
+work_dir = path_uqnamd+ "/campaigns"
 
 campaign = uq.Campaign(state_file="namd_easyvvuq_state.json",
                        work_dir=work_dir)

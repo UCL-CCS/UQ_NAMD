@@ -28,13 +28,8 @@
 #--constraint="scratch&work"
 
 module load slurm_setup
-module load amber
 source /lrz/sys/applications/amber/amber18/amber.sh
 module load namd
-
-# Uncomment when using Vytas interactive submission tool
-#echo "Running cd" /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns/namd_bzylliuc/runs/Run_1
-#cd /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter/campaigns/namd_bzylliuc/runs/Run_1
 
 #n_drugs=2
 #ldrugs="g15 lig0"
@@ -46,17 +41,21 @@ echo "Running equilibration and simulation on " $((1*$SLURM_JOB_NUM_NODES/$n_dru
 echo "Running analysis on " $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) " nodes or " $((1*$SLURM_NTASKS/$n_replicas)) " cores" 
 
 # Path of the UQ_NAMD project
-path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter
+path_uq=${PATH_UQNAMD}
+echo $path_uq
 
 # Define path to reference template for files that are not encoded nor copied
-path_template=${path_uqnamd}/template
+path_template=${path_uq}/template
 
 # Model Builder
 for drug in $ldrugs; do
     cd $drug/build
+    path_template_drug=${path_template}/$drug
+    path_data_drug=${path_template_drug}/par
+    sed -i -e "s;__path_to_drug_par__;$path_data_drug;g" tleap.in 
     tleap -s -f tleap.in > tleap.log
-    bash ${path_template}/$drug/build/compute_dimensions.sh
-    awk -f ${path_template}/$drug/build/constraint.awk complex.pdb ${path_template}/$drug/constraint/prot.pdb > ../constraint/cons.pdb
+    bash ${path_template_drug}/build/compute_dimensions.sh ${path_template_drug}
+    awk -f ${path_template_drug}/build/constraint.awk complex.pdb ${path_template_drug}/constraint/prot.pdb > ../constraint/cons.pdb
     cd ../fe/build
     ante-MMPBSA.py -p ../../build/complex.prmtop -c com.top -r rec.top -l lig.top -s :129-100000 -n :128
     cd ../../../
@@ -125,12 +124,16 @@ for drug in $ldrugs; do
     done
 done
 
-echo "drug,replica,binding_energy_avg,binding_energy_stdev" > output.csv
+echo "drug,binding_energy_avg" > output.csv
 for drug in $ldrugs; do
+    rm tmp.output.csv
     for i in $(seq 1 $n_replicas); do
         cd $drug/fe/mmpbsa/rep$i
-        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3 "," $4; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
+        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
         cd ../../../../
-        echo "$drug,$i,$tmp_str" >> output.csv
+        #echo "$drug,$i,$tmp_str" >> nonavg.output.csv
+        echo "$tmp_str" >> tmp.output.csv
     done
+    tmp_str=$(awk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' tmp.output.csv)
+    echo "$drug,$tmp_str" >> output.csv
 done
