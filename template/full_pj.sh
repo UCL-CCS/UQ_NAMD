@@ -6,6 +6,9 @@ n_drugs=1
 drug="g15"
 n_replicas=3
 
+source /lrz/sys/applications/amber/amber18/amber.sh
+module load namd
+
 # Define path to reference template for files that are not encoded nor copied
 path_template=${PATH_UQNAMD}/template
 

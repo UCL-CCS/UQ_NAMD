@@ -29,13 +29,11 @@
 #--constraint="scratch&work"
 
 module load slurm_setup
-module load amber
 source /lrz/sys/applications/amber/amber18/amber.sh
-module load namd
 
 # Path of the UQ_NAMD project (the CODE), Campaign in SCRATCH
-export PATH_UQNAMD=/hppfs/work/pn72wa/ga89wen3/UQ_NAMD
-export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
+export UQNAMD_PATH=/hppfs/work/pn72wa/ga89wen3/UQ_NAMD
+export PYTHONPATH=$PYTHONPATH:$UQNAMD_PATH/utils
 
 # For EQI
 export EASYPJ_CONFIG=conf.sh
