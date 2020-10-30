@@ -103,9 +103,14 @@ campaign.set_app("uq_for_namd")
 # for a lot of the parameters its hard to define a useful range to sample
 # we could choose +/- 15%
 # or choose ranges that are typically found in the literature
-vary = {
+vary_physical = {
    "cutoff": cp.Uniform(8,15),
 }
+
+vary_solver = {
+}
+
+vary = vary_physical
 
 #==================================
 #create (dimension-adaptive) sampler
@@ -125,10 +130,11 @@ campaign.set_sampler(sampler)
 campaign.draw_samples()
 campaign.populate_runs_dir()
 
-campaign.save_state("namd_easyvvuq_state.json")
-sampler.save_state("namd_sampler_state.pickle")
+campaign.save_state("namd_easyvvuq_state.0.json")
+sampler.save_state("namd_sampler_state.0.pickle")
 
 #run the UQ ensemble
 cmd = path_uqnamd + "/template/full.sh"
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+vinterpret = "sbatch --export=path_uq={}".format(path_uqnamd)
+campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret=vinterpret))
 

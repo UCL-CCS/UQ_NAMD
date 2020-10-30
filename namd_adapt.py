@@ -22,17 +22,20 @@ output_columns = ["binding_energy_avg"]
 path_uqnamd = os.environ['PATH_UQNAMD']
 work_dir = path_uqnamd+ "/campaigns"
 
+# Set iteration count of the adaptive algorithm
+iteration = int(sys.argv[1])
+
 #reload Campaign, sampler, analysis
-campaign = uq.Campaign(state_file="namd_easyvvuq_state.json",
+campaign = uq.Campaign(state_file="namd_easyvvuq_state.{}.json".format(iteration),
                        work_dir=work_dir)
 print('========================================================')
-print('Reloaded campaign', campaign.campaign_dir.split('/')[-1])
+print('Reloaded campaign', campaign.campaign_dir.split('/')[-1], ' at iteration: ', iteration)
 print('========================================================')
 sampler = campaign.get_active_sampler()
-sampler.load_state("namd_sampler_state.pickle")
+sampler.load_state("namd_sampler_state.{}.pickle".format(iteration))
 campaign.set_sampler(sampler)
 analysis = uq.analysis.SCAnalysis(sampler=sampler, qoi_cols=output_columns)
-analysis.load_state("namd_analysis_state.pickle")
+analysis.load_state("namd_analysis_state.{}.pickle".format(iteration))
 
 # fetch results
 #fab.get_uq_samples(config, campaign.campaign_dir, sampler._number_of_samples,
@@ -43,12 +46,12 @@ campaign.collate()
 #highest error and add that direction to the grid
 data_frame = campaign.get_collation_result()
 data_frame.to_csv('results.csv')
-analysis.adapt_dimension(output_columns[0], data_frame)
+analysis.adapt_dimension(output_columns[0], data_frame, method='var')
 
 #save everything
-campaign.save_state("namd_easyvvuq_state.json")
-sampler.save_state("namd_sampler_state.pickle")
-analysis.save_state("namd_analysis_state.pickle")
+campaign.save_state("namd_easyvvuq_state.{}.json".format(iteration))
+sampler.save_state("namd_sampler_state.{}.pickle".format(iteration))
+analysis.save_state("namd_analysis_state.{}.pickle".format(iteration))
 
 #apply analysis
 #campaign.apply_analysis(analysis)

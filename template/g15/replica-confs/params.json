@@ -40,8 +40,8 @@
     "type": "integer"
   },
   "PMEGridSpacing": {
-    "default": 1,
-    "type": "integer"
+    "default": 1.0,
+    "type": "float"
   },
   "minimize_eq0": {
     "default": 1000,

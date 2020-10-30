@@ -19,17 +19,20 @@ output_columns = ["drug","binding_energy_avg"]
 path_uqnamd = os.environ['PATH_UQNAMD']
 work_dir = path_uqnamd+ "/campaigns"
 
+# Set iteration count of the adaptive algorithm
+iteration = int(sys.argv[1])
+
 #reload Campaign, sampler, analysis
-campaign = uq.Campaign(state_file="namd_easyvvuq_state.json",
+campaign = uq.Campaign(state_file="namd_easyvvuq_state.{}.json".format(iteration-1),
                        work_dir=work_dir)
 print('========================================================')
-print('Reloaded campaign', campaign.campaign_dir.split('/')[-1])
+print('Reloaded campaign', campaign.campaign_dir.split('/')[-1], ' at iteration: ', iteration)
 print('========================================================')
 sampler = campaign.get_active_sampler()
-sampler.load_state("namd_sampler_state.pickle")
+sampler.load_state("namd_sampler_state.{}.pickle".format(iteration-1))
 campaign.set_sampler(sampler)
 analysis = uq.analysis.SCAnalysis(sampler=sampler, qoi_cols=output_columns)
-analysis.load_state("namd_analysis_state.pickle")
+analysis.load_state("namd_analysis_state.{}.pickle".format(iteration-1))
 
 #required parameter in the case of a Fabsim run
 skip = sampler.count
@@ -42,8 +45,9 @@ campaign.draw_samples()
 campaign.populate_runs_dir() # Where are these directories populated? What prevents from running Runs previously simulated? (Maxime)
 
 #save campaign and sampler
-campaign.save_state("namd_easyvvuq_state.json")
-sampler.save_state("namd_sampler_state.pickle")
+campaign.save_state("namd_easyvvuq_state.{}.json".format(iteration))
+sampler.save_state("namd_sampler_state.{}.pickle".format(iteration))
+analysis.save_state("namd_analysis_state.{}.pickle".format(iteration))
 
 #run the UQ ensemble at the admissible forward points
 #skip (int) = the number of previous samples: required to avoid recomputing
@@ -51,5 +55,7 @@ sampler.save_state("namd_sampler_state.pickle")
 #fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
 #                    machine="eagle_vecma", skip=skip, PilotJob=False)
 
+#run the UQ ensemble
 cmd = path_uqnamd + "/template/full.sh"
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+vinterpret = "sbatch --export=path_uq={}".format(path_uqnamd)
+campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret=vinterpret))

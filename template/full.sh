@@ -23,7 +23,7 @@
 ##SBATCH --nodes=25
 #SBATCH --nodes=3
 #SBATCH --ntasks-per-node=48
-
+#SBATCH --export=path_uq=$PATH_UQNAMD
 #constraints are optional
 #--constraint="scratch&work"
 
@@ -41,8 +41,8 @@ echo "Running equilibration and simulation on " $((1*$SLURM_JOB_NUM_NODES/$n_dru
 echo "Running analysis on " $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) " nodes or " $((1*$SLURM_NTASKS/$n_replicas)) " cores" 
 
 # Path of the UQ_NAMD project
-path_uq=${PATH_UQNAMD}
-echo $path_uq
+#path_uq=${PATH_UQNAMD}
+echo "Path of the UQ NAMD project: "$path_uq
 
 # Define path to reference template for files that are not encoded nor copied
 path_template=${path_uq}/template
