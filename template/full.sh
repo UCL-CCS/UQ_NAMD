@@ -9,19 +9,20 @@
 #Notification and type
 #SBATCH --mail-type=NONE
 # Wall clock limit:
-#SBATCH --time=00:30:00
+#SBATCH --time=20:00:00
+##SBATCH --time=00:30:00
 #SBATCH --no-requeue
 #Setup of execution environment
 #SBATCH --export=NONE
 #SBATCH --get-user-env
 #SBATCH --account=pn72qu
-##SBATCH --partition=general
-#SBATCH --partition=micro
+#SBATCH --partition=general
+##SBATCH --partition=micro
 ##SBATCH --partition=test
 ##SBATCH --qos=nolimit
 #Number of nodes and MPI tasks per node:
-##SBATCH --nodes=25
-#SBATCH --nodes=3
+#SBATCH --nodes=25
+##SBATCH --nodes=3
 #SBATCH --ntasks-per-node=48
 #SBATCH --export=path_uq=$PATH_UQNAMD
 #constraints are optional
@@ -35,7 +36,8 @@ module load namd
 #ldrugs="g15 lig0"
 n_drugs=1
 ldrugs="g15"
-n_replicas=3
+n_replicas=25
+#n_replicas=3
 
 echo "Running equilibration and simulation on " $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) " nodes or " $((1*$SLURM_NTASKS/$n_drugs)) " cores" 
 echo "Running analysis on " $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) " nodes or " $((1*$SLURM_NTASKS/$n_replicas)) " cores" 

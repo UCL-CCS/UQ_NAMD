@@ -12,7 +12,7 @@ look ahead, adapt, look ahead, adapt, etc
 """
 
 import easyvvuq as uq
-import os
+import os, sys
 from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
 
 output_columns = ["drug","binding_energy_avg"]
