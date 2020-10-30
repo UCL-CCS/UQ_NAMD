@@ -12,47 +12,27 @@ look ahead, adapt, look ahead, adapt, etc
 """
 
 import easyvvuq as uq
-import os
+import os, sys
+from encoders import SimEncoder, Eq1Encoder, Eq2Encoder
 
-class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
+output_columns = ["drug","binding_energy_avg"]
+path_uqnamd = os.environ['PATH_UQNAMD']
+work_dir = path_uqnamd+ "/campaigns"
 
-        simulation_time = 10**params["simulation_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
-        # 48 as the number of cores on a node (see anaysis.sh)
-        params["dcd_freq"] = min(int(params["n_steps"]/48), 5000)
-        super().encode(params, target_dir, fixtures)
-
-class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["equilibration1_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
-        super().encode(params, target_dir, fixtures)
-
-class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["equilibration2_time_power"]
-        params["n_steps"] = int( round( simulation_time / params["timestep"] ) )
-        super().encode(params, target_dir, fixtures)
-
-home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["drug","replica","binding_energy_avg","binding_energy_stdev"]
-#output_columns = ["binding_energy_avg"]
-work_dir = '/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns'
+# Set iteration count of the adaptive algorithm
+iteration = int(sys.argv[1])
 
 #reload Campaign, sampler, analysis
-campaign = uq.Campaign(state_file="namd_easyvvuq_state.json",
+campaign = uq.Campaign(state_file="namd_easyvvuq_state.{}.json".format(iteration-1),
                        work_dir=work_dir)
 print('========================================================')
-print('Reloaded campaign', campaign.campaign_dir.split('/')[-1])
+print('Reloaded campaign', campaign.campaign_dir.split('/')[-1], ' at iteration: ', iteration)
 print('========================================================')
 sampler = campaign.get_active_sampler()
-sampler.load_state("namd_sampler_state.pickle")
+sampler.load_state("namd_sampler_state.{}.pickle".format(iteration-1))
 campaign.set_sampler(sampler)
 analysis = uq.analysis.SCAnalysis(sampler=sampler, qoi_cols=output_columns)
-analysis.load_state("namd_analysis_state.pickle")
+analysis.load_state("namd_analysis_state.{}.pickle".format(iteration-1))
 
 #required parameter in the case of a Fabsim run
 skip = sampler.count
@@ -65,8 +45,9 @@ campaign.draw_samples()
 campaign.populate_runs_dir() # Where are these directories populated? What prevents from running Runs previously simulated? (Maxime)
 
 #save campaign and sampler
-campaign.save_state("namd_easyvvuq_state.json")
-sampler.save_state("namd_sampler_state.pickle")
+campaign.save_state("namd_easyvvuq_state.{}.json".format(iteration))
+sampler.save_state("namd_sampler_state.{}.pickle".format(iteration))
+analysis.save_state("namd_analysis_state.{}.pickle".format(iteration))
 
 #run the UQ ensemble at the admissible forward points
 #skip (int) = the number of previous samples: required to avoid recomputing
@@ -74,5 +55,7 @@ sampler.save_state("namd_sampler_state.pickle")
 #fab.run_uq_ensemble(config, campaign.campaign_dir, script='CovidSim',
 #                    machine="eagle_vecma", skip=skip, PilotJob=False)
 
-cmd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/template/full.sh"
-campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+#run the UQ ensemble
+cmd = path_uqnamd + "/template/full.sh"
+vinterpret = "sbatch --export=path_uq={}".format(path_uqnamd)
+campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret=vinterpret))

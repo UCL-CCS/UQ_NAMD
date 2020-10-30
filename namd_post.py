@@ -10,12 +10,11 @@ import os
 import fabsim3_cmd_api as fab
 import matplotlib.pyplot as plt
 import numpy as np
-from custom import CustomEncoder
 
 plt.close('all')
-home = os.path.abspath(os.path.dirname(__file__))
 output_columns = ["binding_energy"]
-work_dir = '/Users/robertsinclair/postdoc1/uq_namd/campaigns'
+path_uqnamd = os.environ['PATH_UQNAMD']
+work_dir = path_uqnamd+ "/campaigns"
 
 #reload Campaign, sampler, analysis
 campaign = uq.Campaign(state_file="namd_easyvvuq_state.json", work_dir=work_dir)

@@ -9,54 +9,55 @@
 #Notification and type
 #SBATCH --mail-type=NONE
 # Wall clock limit:
-#SBATCH --time=00:30:00
+#SBATCH --time=20:00:00
+##SBATCH --time=00:30:00
 #SBATCH --no-requeue
 #Setup of execution environment
 #SBATCH --export=NONE
 #SBATCH --get-user-env
 #SBATCH --account=pn72qu
-##SBATCH --partition=general
-#SBATCH --partition=micro
+#SBATCH --partition=general
+##SBATCH --partition=micro
 ##SBATCH --partition=test
 ##SBATCH --qos=nolimit
 #Number of nodes and MPI tasks per node:
-##SBATCH --nodes=25
-#SBATCH --nodes=3
+#SBATCH --nodes=25
+##SBATCH --nodes=3
 #SBATCH --ntasks-per-node=48
-
+#SBATCH --export=path_uq=$PATH_UQNAMD
 #constraints are optional
 #--constraint="scratch&work"
 
 module load slurm_setup
-module load amber
 source /lrz/sys/applications/amber/amber18/amber.sh
 module load namd
-
-# Uncomment when using Vytas interactive submission tool
-#echo "Running cd" /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns/namd_bzylliuc/runs/Run_1
-#cd /hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/campaigns/namd_bzylliuc/runs/Run_1
 
 #n_drugs=2
 #ldrugs="g15 lig0"
 n_drugs=1
 ldrugs="g15"
-n_replicas=3
+n_replicas=25
+#n_replicas=3
 
 echo "Running equilibration and simulation on " $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) " nodes or " $((1*$SLURM_NTASKS/$n_drugs)) " cores" 
 echo "Running analysis on " $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) " nodes or " $((1*$SLURM_NTASKS/$n_replicas)) " cores" 
 
 # Path of the UQ_NAMD project
-path_uqnamd=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2
+#path_uq=${PATH_UQNAMD}
+echo "Path of the UQ NAMD project: "$path_uq
 
 # Define path to reference template for files that are not encoded nor copied
-path_template=${path_uqnamd}/template
+path_template=${path_uq}/template
 
 # Model Builder
 for drug in $ldrugs; do
     cd $drug/build
+    path_template_drug=${path_template}/$drug
+    path_data_drug=${path_template_drug}/par
+    sed -i -e "s;__path_to_drug_par__;$path_data_drug;g" tleap.in 
     tleap -s -f tleap.in > tleap.log
-    bash ${path_template}/$drug/build/compute_dimensions.sh
-    awk -f ${path_template}/$drug/build/constraint.awk complex.pdb ${path_template}/$drug/constraint/prot.pdb > ../constraint/cons.pdb
+    bash ${path_template_drug}/build/compute_dimensions.sh ${path_template_drug}
+    awk -f ${path_template_drug}/build/constraint.awk complex.pdb ${path_template_drug}/constraint/prot.pdb > ../constraint/cons.pdb
     cd ../fe/build
     ante-MMPBSA.py -p ../../build/complex.prmtop -c com.top -r rec.top -l lig.top -s :129-100000 -n :128
     cd ../../../
@@ -66,7 +67,7 @@ done
 for step in {0..2}; do
     for drug in $ldrugs; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 3 ${drug}/replica-confs/eq$step-replicas.conf &
+           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas ${n_replicas} ${drug}/replica-confs/eq$step-replicas.conf &
            sleep 5
         fi
     done
@@ -77,7 +78,7 @@ done
 for step in {1..1}; do
     for drug in $ldrugs; do
         if [ -s ${drug}/build/complex.prmtop ]; then
-           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas 3 ${drug}/replica-confs/sim$step-replicas.conf &
+           srun -N $((1*$SLURM_JOB_NUM_NODES/$n_drugs)) -n $((1*$SLURM_NTASKS/$n_drugs)) namd2 +replicas ${n_replicas} ${drug}/replica-confs/sim$step-replicas.conf &
            sleep 5
         fi
     done
@@ -89,9 +90,8 @@ done
 for drug in $ldrugs; do
     for i in $(seq 1 $n_replicas); do
         cd $drug/fe/mmpbsa/rep$i
-#        srun -N 1 -n 48 MMPBSA.py.MPI -i ../../../../mmpbsa.in -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../dcd/rep$i.dcd &
-        srun -N $((1*$SLURM_JOB_NUM_NODES/$n_replicas)) -n $((1*$SLURM_NTASKS/$n_replicas)) MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd
-        sleep 3
+        srun -N 1 -n 48 MMPBSA.py.MPI -i ${path_template}/mmpbsa.in -sp ../../../build/complex.prmtop -cp ../../build/com.top -rp ../../build/rec.top -lp ../../build/lig.top -y ../../../replicas/rep$i/simulation/sim1.dcd &
+	sleep 3
         cd ../../../../
     done
 done
@@ -126,12 +126,16 @@ for drug in $ldrugs; do
     done
 done
 
-echo "drug,replica,binding_energy_avg,binding_energy_stdev" > output.csv
+echo "drug,binding_energy_avg" > output.csv
 for drug in $ldrugs; do
+    rm tmp.output.csv
     for i in $(seq 1 $n_replicas); do
         cd $drug/fe/mmpbsa/rep$i
-        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3 "," $4; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
+        tmp_str=$(awk '{if(index($0, "DELTA TOTAL")> 0) {count++}; if(count>1) { print $3; count=0}} ' ./FINAL_RESULTS_MMPBSA.dat)
         cd ../../../../
-        echo "$drug,$i,$tmp_str" >> output.csv
+        #echo "$drug,$i,$tmp_str" >> nonavg.output.csv
+        echo "$tmp_str" >> tmp.output.csv
     done
+    tmp_str=$(awk '{ sum += $1; n++ } END { if (n > 0) print sum / n; }' tmp.output.csv)
+    echo "$drug,$tmp_str" >> output.csv
 done
