@@ -1,0 +1,20 @@
+{
+    "db_location": "sqlite:////tmp/namd_p5dwh4m2/campaign.db",
+    "db_type": "sql",
+    "active_app": "uq_for_namd",
+    "campaign_name": "namd_",
+    "campaign_dir": "namd_p5dwh4m2",
+    "log": [
+        {
+            "element": {
+                "name": "sc_sampler",
+                "version": "0.5",
+                "category": "sampling"
+            },
+            "info": {
+                "num_added": 1,
+                "replicas": 1
+            }
+        }
+    ]
+}
