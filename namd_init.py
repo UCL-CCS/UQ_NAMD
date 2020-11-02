@@ -8,37 +8,15 @@ Execute once.
 
 import easyvvuq as uq
 import chaospy as cp
-import os
+import os, sys
+import math
 import json
 import numpy as np
+from encoders import SimEncoder, Eq0Encoder, Eq1Encoder, Eq2Encoder
 
-
-class SimEncoder(uq.encoders.JinjaEncoder, encoder_name='SimEncoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["simulation_time_power"]
-        params["run_sim1"] = int( round( simulation_time / params["timestep_sim1"] ) )
-        # 48 as the number of cores on a node (see anaysis.sh)
-        params["dcd_freq_sim1"] = min(int(params["run_sim1"]/48), 5000)
-        super().encode(params, target_dir, fixtures)
-
-class Eq1Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq1Encoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["equilibration1_time_power"]
-        params["run_eq1"] = int( round( simulation_time / params["timestep_eq1"] ) )
-        super().encode(params, target_dir, fixtures)
-
-class Eq2Encoder(uq.encoders.JinjaEncoder, encoder_name='Eq2Encoder'):
-    def encode(self, params={}, target_dir='', fixtures=None):
-
-        simulation_time = 10**params["equilibration2_time_power"]
-        params["run_eq2"] = int( round( simulation_time / params["timestep_eq2"] ) )
-        super().encode(params, target_dir, fixtures)
-
-home = os.path.abspath(os.path.dirname(__file__))
-output_columns = ["binding_energy"]
-work_dir = '/tmp'
+output_columns = ["drug","binding_energy_avg"]
+path_uqnamd = os.environ['PATH_UQNAMD']
+work_dir = path_uqnamd+ "/campaigns"
 
 n_replicas = 3 # number of replicas per input data point
 
@@ -46,12 +24,9 @@ n_replicas = 3 # number of replicas per input data point
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 
 # Define parameter space
-params = json.load(open(home + '/template/g15/replica-confs/params.json'))
+params = json.load(open(path_uqnamd + '/template/g15/replica-confs/params.json'))
 #manually add some parameters
-params["simulation_time_power"]  = {"default": 3, "type": "float"} # 10 ns
-params["equilibration1_time_power"] = {"default": 5, "type": "float"} #100ps
-params["equilibration2_time_power"] = {"default": 6, "type": "float"} #1ns
-params["box_size"] = {"default": 14, "type": "float"}
+#params["example_param"] = {"default": 14.0, "type": "float"}
 
 # tell the campaign the directory structure required
 directory_tree = {'g15':
@@ -76,33 +51,33 @@ directory_tree = {'g15':
 # Build the encoders
 multiencoder = uq.encoders.MultiEncoder(
     uq.encoders.DirectoryBuilder(tree=directory_tree),
-    uq.encoders.JinjaEncoder(
-        template_fname=home + '/template/g15/replica-confs/template_eq0.conf',
-        target_filename='g15/replica-confs/eq0.conf'),
+    Eq0Encoder(
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq0.conf',
+        target_filename='g15/replica-confs/eq0.conf'),    
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq0-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq0-replicas.conf',
         target_filename='g15/replica-confs/eq0-replicas.conf'),
     Eq1Encoder(
-        template_fname=home + '/template/g15/replica-confs/template_eq1.conf',
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq1.conf',
         target_filename='g15/replica-confs/eq1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq1-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq1-replicas.conf',
         target_filename='g15/replica-confs/eq1-replicas.conf'),
     Eq2Encoder(
-        template_fname=home + '/template/g15/replica-confs/template_eq2.conf',
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq2.conf',
         target_filename='g15/replica-confs/eq2.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/eq2-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq2-replicas.conf',
         target_filename='g15/replica-confs/eq2-replicas.conf'),
     SimEncoder(
-        template_fname=home + '/template/g15/replica-confs/template_sim1.conf',
+        template_fname= path_uqnamd + '/template/g15/replica-confs/template_sim1.conf',
         target_filename='g15/replica-confs/sim1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename=home + '/template/g15/replica-confs/sim1-replicas.conf',
+        source_filename= path_uqnamd + '/template/g15/replica-confs/sim1-replicas.conf',
         target_filename='g15/replica-confs/sim1-replicas.conf'),
     uq.encoders.GenericEncoder(
         delimiter='$',
-        template_fname=home + '/template/g15/build/tleap.in',
+        template_fname= path_uqnamd + '/template/g15/build/tleap.in',
         target_filename='g15/build/tleap.in')
 )
 
@@ -110,7 +85,7 @@ multiencoder = uq.encoders.MultiEncoder(
 # into a useful file, prefereable csv
 decoder = uq.decoders.SimpleCSV(
     target_filename='output.csv',
-    output_columns=output_columns, header=0, delimiter='\t')
+    output_columns=output_columns, header=0, delimiter=',')
 
 collater = uq.collate.AggregateSamples(average=False)
 
@@ -126,54 +101,67 @@ campaign.set_app("uq_for_namd")
 
 #parameters to vary
 # for a lot of the parameters its hard to define a useful range to sample
-# we could choose +/- 10%
+# we could choose +/- 15%
 # or choose ranges that are typically found in the literature
-vary = {
-        "BerendsenPressureTarget_eq2": cp.Uniform(0.8, 1.2),
-        "BerendsenPressureRelaxationTime_eq2": cp.Normal(100,5),
-        "box_size": cp.Uniform(14, 16),
-        "equilibration1_time_power":  cp.Uniform(2,4),
-        "equilibration2_time_power": cp.Uniform(2,4),
+vary_physical = {
+  "setTemperature": cp.Uniform(300.0*0.85,300.0*1.15),
+  "time_factor_eq": cp.Uniform(60000.0*0.85,60000.0*1.15),
+  "run_stepcount_factor": cp.Uniform_discrete(30000*0.85,30000*1.15),
+  "BerendsenPressureTarget": cp.Uniform(1.01325*0.85,1.01325*1.15),
+  "time_sim1": cp.Uniform(10000000.0*0.85,10000000.0*1.15),
 }
+ 
+vary_solver = {
+  "box_size": cp.Uniform(14.0*0.85,14.0*1.15),
+  "cutoff": cp.Uniform(12.0*0.85,12.0*1.15),
+  "switching": ["on", "off"],
+  "timestep": cp.Uniform(2.0*0.85,2.0*1.15),
+  "rigidBonds": ["none", "water", "all"],
+  "rigidtolerance": cp.Uniform(0.00001*0.85,0.00001*1.15),
+  "rigidIterations": cp.Uniform_discrete(100*0.85,100*1.15),
+  "nonbondedFreq": cp.Uniform_discrete(1*0.85,1*1.15),
+  "fullElectFrequency": cp.Uniform_discrete(2*0.85,2*1.15),
+  "stepspercycle": cp.Uniform_discrete(10*0.85,10*1.15),
+  "PMEGridSpacing": cp.Uniform(1.0*0.85,1.0*1.15),
+  "minimize_eq0": cp.Uniform_discrete(1000*0.85,1000*1.15),
+  "initTemperature_eq1": cp.Uniform(50.0*0.85,50.0*1.15),
+  "reassignFreq_eq1": cp.Uniform_discrete(100*0.85,100*1.15),
+  "reassignIncr_eq1": cp.Uniform(1.0*0.85,1.0*1.15),
+  "langevinDamping": cp.Uniform(5.0*0.85,5.0*1.15),
+  "langevinHydrogen": ["yes", "no"],
+  "useGroupPressure": ["yes", "no"],
+  "BerendsenPressureCompressibility": cp.Uniform(0.0000457*0.85,0.0000457*1.15),
+  "BerendsenPressureRelaxationTime": cp.Uniform(100.0*0.85,100.0*1.15),
+  "BerendsenPressureFreq": cp.Uniform_discrete(2*0.85,2*1.15),
+}
+
+vary = {}
+vary.update(vary_physical)
+vary.update(vary_solver)
 
 #==================================
 #create (dimension-adaptive) sampler
 #=================================
-#sparse = use a sparse grid
-#growth = use a nested quadrature rule
-#midpoint_level1 = use a single collocation point in the 1st iteration
-#dimension_adaptive = use a dimension adaptive sampler
+
+#sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=2,
+#                                quadrature_rule="G")
 
 sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
                                 quadrature_rule="C",
-                                sparse=False, growth=False,
-                                midpoint_level1=False,
-                                dimension_adaptive=False)
-
-# # swap to this for a simple test of the substitutions
-# testing_sampler = uq.sampling.BasicSweep(sweep={
-#                     "box_size": [5.0, 10.0, 20.0],
-#                     })
+                                sparse=True, growth=True,
+                                midpoint_level1=True,
+                                dimension_adaptive=True)
 
 campaign.set_sampler(sampler)
 # campaign.set_sampler(testing_sampler)
 campaign.draw_samples()
 campaign.populate_runs_dir()
 
-campaign.save_state("namd_easyvvuq_state.json")
-sampler.save_state("namd_sampler_state.pickle")
+campaign.save_state("namd_easyvvuq_state.0.json")
+sampler.save_state("namd_sampler_state.0.pickle")
 
 #run the UQ ensemble
-# # cwd = "/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2" #os.getcwd()
-# cwd = os.getcwd()
-# cmd = "{}/template/prepare.sh".format(cwd)
-# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='bash'))
-# cmd = "{}/template/sim.sh".format(cwd)
-# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
-# cmd = "{}/template/analysis.sh".format(cwd)
-# campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret='sbatch'))
+cmd = path_uqnamd + "/template/full.sh"
+vinterpret = "sbatch --export=path_uq={}".format(path_uqnamd)
+campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret=vinterpret))
 
-# Ready to replace the LocalExecution above with execution from PJM, how? Using fabsim? (Maxime)
-#import fabsim3_cmd_api as fab
-#fab.run_uq_ensemble(config??, campaign.campaign_dir, script='??',
-#                    machine="supermuc??_vecma", PilotJob = True)
