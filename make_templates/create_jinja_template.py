@@ -97,6 +97,8 @@ def make_template(param_file):
             easyvvuq_value = '{{ ' + easyvvuq_name + ' }}'
             #write the template file
             fp_template.write('%s\t\t\t%s\t\t#%s\n' % (input_name, easyvvuq_value, comment))
+            #
+            fp_csv.write(easyvvuq_name + ',' + default_value + ',' + comment.replace(',', ' ') + '\n')
         idx += 1
 
     fp.close()
@@ -166,6 +168,14 @@ import json
 params = {}
 #Loop over all parameter input files specified at the command prompt:
 #python3 create_jinja_template.py eq0.conf eq1.conf eq2.conf sim1.conf 
+
+#file to write all parameter names, default values, and any comments to
+#just used to obtain a global overview
+fp_csv = open('all_params.csv', 'w')
+fp_csv.write('Parameter name,default,comment\n')
+
 for param_file in sys.argv[1:]:
     make_template(param_file)
     json.dump(params, open('params.json','w'))
+
+fp_csv.close()
