@@ -102,6 +102,26 @@
   "time_sim1": {
     "default": 10000000.0,
     "type": "float"
+  },
+  "run_stepcount_factor": {
+    "default": 30000,
+    "type": "float"
+  },
+  "rigidIterations": {
+    "default": 100,
+    "type": "float"
+  },
+  "stepspercycle": {
+    "default": 10,
+    "type": "float"
+  },
+  "minimize_eq0": {
+    "default": 1000,
+    "type": "float"
+  },
+  "reassignFreq_eq1": {
+    "default": 100,
+    "type": "float"
   }
 }
 
