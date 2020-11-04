@@ -27,7 +27,7 @@ cp params.json template_eq0.conf template_eq1.conf template_eq2.conf template_si
 cd ..
 ```
 
-Set the parameters variability in `namd_init.py``, in the `vary` dictionary, such as:
+Set the parameters variability in `namd_init.py`, in the `vary` dictionary, such as:
 ```
 vary = {
         "langevinTemp": cp.Gaussian(300.,100.), # not sure about normal distirbution of float parameter

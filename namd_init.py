@@ -27,6 +27,7 @@ campaign = uq.Campaign(name='namd_', work_dir=work_dir)
 params = json.load(open(path_uqnamd + '/template/g15/replica-confs/params.json'))
 #manually add some parameters
 #params["example_param"] = {"default": 14.0, "type": "float"}
+#params["rng_seed_eq1"] = {"default": rng_seed,"type": "integer"}
 
 # tell the campaign the directory structure required
 directory_tree = {'g15':
@@ -106,7 +107,6 @@ campaign.set_app("uq_for_namd")
 vary_physical = {
   "setTemperature": cp.Uniform(300.0*0.85,300.0*1.15),
   "time_factor_eq": cp.Uniform(60000.0*0.85,60000.0*1.15),
-  "run_stepcount_factor": cp.Uniform_discrete(30000*0.85,30000*1.15),
   "BerendsenPressureTarget": cp.Uniform(1.01325*0.85,1.01325*1.15),
   "time_sim1": cp.Uniform(10000000.0*0.85,10000000.0*1.15),
 }
@@ -114,25 +114,25 @@ vary_physical = {
 vary_solver = {
   "box_size": cp.Uniform(14.0*0.85,14.0*1.15),
   "cutoff": cp.Uniform(12.0*0.85,12.0*1.15),
-  "switching": ["on", "off"],
+  #"switching": cp.DiscreteUniform(0,1), # ["off", "on"]
   "timestep": cp.Uniform(2.0*0.85,2.0*1.15),
-  "rigidBonds": ["none", "water", "all"],
+  #"rigidBonds": cp.DiscreteUniform(0,2), # ["none", "water", "all"]
   "rigidtolerance": cp.Uniform(0.00001*0.85,0.00001*1.15),
-  "rigidIterations": cp.Uniform_discrete(100*0.85,100*1.15),
-  "nonbondedFreq": cp.Uniform_discrete(1*0.85,1*1.15),
-  "fullElectFrequency": cp.Uniform_discrete(2*0.85,2*1.15),
-  "stepspercycle": cp.Uniform_discrete(10*0.85,10*1.15),
+  #"rigidIterations": cp.DiscreteUniform(int(math.floor(100*0.85)),int(math.ceil(100*1.15))),
+  #"nonbondedFreq": cp.DiscreteUniform(0,2),
+  #"fullElectFrequency": cp.DiscreteUniform(1,3),
+  #"stepspercycle": cp.DiscreteUniform(8,12),
   "PMEGridSpacing": cp.Uniform(1.0*0.85,1.0*1.15),
-  "minimize_eq0": cp.Uniform_discrete(1000*0.85,1000*1.15),
+  #"minimize_eq0": cp.DiscreteUniform(int(1000*0.85),int(1000*1.15)),
   "initTemperature_eq1": cp.Uniform(50.0*0.85,50.0*1.15),
-  "reassignFreq_eq1": cp.Uniform_discrete(100*0.85,100*1.15),
+  #"reassignFreq_eq1": cp.DiscreteUniform(int(100*0.85),int(100*1.15)),
   "reassignIncr_eq1": cp.Uniform(1.0*0.85,1.0*1.15),
   "langevinDamping": cp.Uniform(5.0*0.85,5.0*1.15),
-  "langevinHydrogen": ["yes", "no"],
-  "useGroupPressure": ["yes", "no"],
+  #"langevinHydrogen": cp.DiscreteUniform(0,1), # ["no", "yes"]
+  #"useGroupPressure": cp.DiscreteUniform(0,1), # ["no", "yes"]
   "BerendsenPressureCompressibility": cp.Uniform(0.0000457*0.85,0.0000457*1.15),
   "BerendsenPressureRelaxationTime": cp.Uniform(100.0*0.85,100.0*1.15),
-  "BerendsenPressureFreq": cp.Uniform_discrete(2*0.85,2*1.15),
+  #"BerendsenPressureFreq": cp.DiscreteUniform(1,3),
 }
 
 vary = {}
@@ -153,7 +153,6 @@ sampler = uq.sampling.SCSampler(vary=vary, polynomial_order=1,
                                 dimension_adaptive=True)
 
 campaign.set_sampler(sampler)
-# campaign.set_sampler(testing_sampler)
 campaign.draw_samples()
 campaign.populate_runs_dir()
 
