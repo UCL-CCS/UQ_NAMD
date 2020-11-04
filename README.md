@@ -8,15 +8,8 @@ source /path/to/python/env/uq/bin/activate
 
 Set environment paths:
 ```
-export PATH_UQNAMD=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter
+export PATH_UQNAMD=/path/to/UQ_NAMD
 export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
-```
-
-Modifying hard set paths:
-```
-orig_path=/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2_wouter
-new_path=/path/to/this/directory
-find . -name '*' -exec sed -i -e "s;$orig_path;$new_path;g" {} \;
 ```
 
 Template generation:
