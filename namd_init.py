@@ -114,30 +114,34 @@ vary_physical = {
 vary_solver = {
   "box_size": cp.Uniform(14.0*0.85,14.0*1.15),
   "cutoff": cp.Uniform(12.0*0.85,12.0*1.15),
-  #"switching": cp.DiscreteUniform(0,1), # ["off", "on"]
   "timestep": cp.Uniform(2.0*0.85,2.0*1.15),
-  #"rigidBonds": cp.DiscreteUniform(0,2), # ["none", "water", "all"]
   "rigidtolerance": cp.Uniform(0.00001*0.85,0.00001*1.15),
-  #"rigidIterations": cp.DiscreteUniform(int(math.floor(100*0.85)),int(math.ceil(100*1.15))),
-  #"nonbondedFreq": cp.DiscreteUniform(0,2),
-  #"fullElectFrequency": cp.DiscreteUniform(1,3),
-  #"stepspercycle": cp.DiscreteUniform(8,12),
   "PMEGridSpacing": cp.Uniform(1.0*0.85,1.0*1.15),
-  #"minimize_eq0": cp.DiscreteUniform(int(1000*0.85),int(1000*1.15)),
   "initTemperature_eq1": cp.Uniform(50.0*0.85,50.0*1.15),
-  #"reassignFreq_eq1": cp.DiscreteUniform(int(100*0.85),int(100*1.15)),
   "reassignIncr_eq1": cp.Uniform(1.0*0.85,1.0*1.15),
   "langevinDamping": cp.Uniform(5.0*0.85,5.0*1.15),
-  #"langevinHydrogen": cp.DiscreteUniform(0,1), # ["no", "yes"]
-  #"useGroupPressure": cp.DiscreteUniform(0,1), # ["no", "yes"]
   "BerendsenPressureCompressibility": cp.Uniform(0.0000457*0.85,0.0000457*1.15),
   "BerendsenPressureRelaxationTime": cp.Uniform(100.0*0.85,100.0*1.15),
-  #"BerendsenPressureFreq": cp.DiscreteUniform(1,3),
+}
+
+vary_discrete = {
+  "switching": cp.DiscreteUniform(0,1), # ["off", "on"]
+  "rigidBonds": cp.DiscreteUniform(0,2), # ["none", "water", "all"]
+  "rigidIterations": cp.DiscreteUniform(int(math.floor(100*0.85)),int(math.ceil(100*1.15))),
+  "nonbondedFreq": cp.DiscreteUniform(0,2),
+  "fullElectFrequency": cp.DiscreteUniform(1,3),
+  "stepspercycle": cp.DiscreteUniform(8,12),
+  "minimize_eq0": cp.DiscreteUniform(int(1000*0.85),int(1000*1.15)),
+  "reassignFreq_eq1": cp.DiscreteUniform(int(100*0.85),int(100*1.15)),
+  "langevinHydrogen": cp.DiscreteUniform(0,1), # ["no", "yes"]
+  "useGroupPressure": cp.DiscreteUniform(0,1), # ["no", "yes"]
+  "BerendsenPressureFreq": cp.DiscreteUniform(1,3),
 }
 
 vary = {}
 vary.update(vary_physical)
 vary.update(vary_solver)
+#vary.update(vary_discrete)
 
 #==================================
 #create (dimension-adaptive) sampler
