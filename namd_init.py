@@ -18,7 +18,7 @@ output_columns = ["drug","binding_energy_avg"]
 path_uqnamd = os.environ['PATH_UQNAMD']
 work_dir = path_uqnamd+ "/campaigns"
 
-n_replicas = 3 # number of replicas per input data point
+n_replicas = 25 # number of replicas per input data point
 
 # Set up a fresh campaign
 campaign = uq.Campaign(name='namd_', work_dir=work_dir)
