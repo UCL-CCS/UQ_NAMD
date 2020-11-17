@@ -1,15 +1,18 @@
 `python namd_init.py` working on 9.6.2020 with:
 - EasyVVUQ (branch: speed_up_SC_analysis, Chaospy v3.2.12)
+- EQI
+- QCG-PJ
 
-Activate proper environment featuring Python and EasyVVUQ, e.g:
+Specify paths in the SLURM job toward Python environment and UQ directory:
 ```
 source /path/to/python/env/uq/bin/activate
+...
+export PATH_UQNAMD=/path/to/UQ_NAMD
 ```
 
-Set environment paths:
+Execute submitting SLURM job:
 ```
-export PATH_UQNAMD=/path/to/UQ_NAMD
-export PYTHONPATH=$PYTHONPATH:$PATH_UQNAMD/utils
+sbatch run-supermuc.sh
 ```
 
 Template generation:
