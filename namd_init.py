@@ -168,3 +168,8 @@ cmd = path_uqnamd + "/template/full.sh"
 vinterpret = "sbatch --export=path_uq={}".format(path_uqnamd)
 campaign.apply_for_each_run_dir(uq.actions.ExecuteLocal(cmd, interpret=vinterpret))
 
+# using jobarray instead
+#cmd = path_uqnamd + "/template/full.jobarray.sh"
+#srange = "RF-RL" # where RF is the number of the first Run_ to simulate and RL is the number of the last Run_ to simulate
+#vinterpret = "sbatch --array={} --export=path_uq={}".format(srange, path_uqnamd)
+#campaign.apply_in_run_dir(uq.actions.ExecuteLocal(cmd, interpret=vinterpret))
