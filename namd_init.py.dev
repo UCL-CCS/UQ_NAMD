@@ -61,26 +61,26 @@ multiencoder = uq.encoders.MultiEncoder(
         template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq0.conf',
         target_filename='g15/replica-confs/eq0.conf'),    
     uq.encoders.CopyEncoder(
-        source_filename= path_uqnamd + '/template/g15/replica-confs/eq0-replicas.conf',
-        target_filename='g15/replica-confs/eq0-replicas.conf'),
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq0-replicas.conf.dev',
+        target_filename='g15/replica-confs/eq0-replicas.conf.dev'),
     Eq1Encoder(
         template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq1.conf',
         target_filename='g15/replica-confs/eq1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename= path_uqnamd + '/template/g15/replica-confs/eq1-replicas.conf',
-        target_filename='g15/replica-confs/eq1-replicas.conf'),
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq1-replicas.conf.dev',
+        target_filename='g15/replica-confs/eq1-replicas.conf.dev'),
     Eq2Encoder(
         template_fname= path_uqnamd + '/template/g15/replica-confs/template_eq2.conf',
         target_filename='g15/replica-confs/eq2.conf'),
     uq.encoders.CopyEncoder(
-        source_filename= path_uqnamd + '/template/g15/replica-confs/eq2-replicas.conf',
-        target_filename='g15/replica-confs/eq2-replicas.conf'),
+        source_filename= path_uqnamd + '/template/g15/replica-confs/eq2-replicas.conf.dev',
+        target_filename='g15/replica-confs/eq2-replicas.conf.dev'),
     SimEncoder(
         template_fname= path_uqnamd + '/template/g15/replica-confs/template_sim1.conf',
         target_filename='g15/replica-confs/sim1.conf'),
     uq.encoders.CopyEncoder(
-        source_filename= path_uqnamd + '/template/g15/replica-confs/sim1-replicas.conf',
-        target_filename='g15/replica-confs/sim1-replicas.conf'),
+        source_filename= path_uqnamd + '/template/g15/replica-confs/sim1-replicas.conf.dev',
+        target_filename='g15/replica-confs/sim1-replicas.conf.dev'),
     uq.encoders.GenericEncoder(
         delimiter='$',
         template_fname= path_uqnamd + '/template/g15/build/tleap.in',
