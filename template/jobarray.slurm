@@ -30,4 +30,4 @@
 #PATH_UQNAMD="/hppfs/work/pn72qu/di36yax3/tmp/uq_namd2/uq_namd2_continuous"
 echo "Path of the UQ NAMD project: "$path_uq
 
-bash $path_uq/template/full.jobarray.sh $SLURM_ARRAY_TASK_ID $PATH_UQNAMD
+bash $path_uq/template/full.jobarray.sh $SLURM_ARRAY_TASK_ID $path_uq
