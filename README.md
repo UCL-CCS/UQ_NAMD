@@ -47,12 +47,6 @@ python namd_adapt.py iteration+1
 ```
 The execution of namd_init.py and namd_analyse.py constitutes the iteration '0' of the adaptive sampling method (or the unique iteration of the non-adaptive sampling method). Subsequent iterations are executed using namd_look_ahead.py and namd_adapt.py, which require the specification of the iteration number (integer) to store the analysis and sampler data individually for each iteration.
 
-
-We previously used fabsim to copy jobs back and forth from remote and execute jobs.
-I've left the commands in (commented) because these tasks still need to be implemented.
-FabSim could still be used, but with such large data files it may be impractical(?)
-
-/plots.ipynb/ : jupyter notebook that was used for analysing the covidsim disease parameter sweep, this analysis should be relevant for this study
 python-env.txt : python conda environment for reference
 /template/ : simulation files modified to template with EasyVVUQ
 /campaigns/ : where easyvvuq campaigns are stored
